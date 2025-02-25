@@ -164,3 +164,6 @@ public/robots.txt
 
 # zone identifier
 *:Zone.Identifier
+
+# all dist
+**/dist
