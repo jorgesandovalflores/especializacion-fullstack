@@ -1,11 +1,12 @@
 <script setup lang="ts">
 // Usa uno u otro store aquí:
-import { useTodoStorageStore as useTodoStore } from '../stores/todoStorage'
+import { useTodoPersist as useTodoPersist } from '../stores/todoPersist'
+//import { useTodoStorageStore as useTodoStore } from '../stores/todoStorage'
 // import { useTodoGlobalStore as useTodoStore } from '../stores/todoGlobal'
 
 import { ref } from 'vue'
 
-const todoStore = useTodoStore()
+const todoStore = useTodoPersist()
 const newTodo = ref('')
 
 function add() {
