@@ -380,3 +380,5 @@ Con estos pasos, ya tienes implementado un sistema completo de:
 - Interceptores para consumir APIs seguras
 - Componentes con estilos centrados y limpios
 - Manejo de rutas no encontradas
+
+
