@@ -10,9 +10,11 @@ export const useAuthStore = defineStore('auth', () => {
 	const login = async (email: string, password: string) => {
 		try {
 			const res = await api.get(`/Users/124`)
+			console.log('res = ', res)
+		
 			token.value = res.password
 			user.value = res.name
-			localStorage.setItem('token', res.token)
+			localStorage.setItem('token', res.password)
 			router.push('/home')
 		} catch (e) {
 			alert('Credenciales inválidas')
