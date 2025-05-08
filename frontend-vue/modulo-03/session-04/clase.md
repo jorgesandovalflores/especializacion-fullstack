@@ -40,6 +40,45 @@ Set-Cookie: refresh_token=abc123; HttpOnly; Secure; SameSite=Strict
 > - `access_token`: guardar temporalmente en memoria o LocalStorage.
 > - `refresh_token`: **siempre** usar HttpOnly Cookie para seguridad.
 
+### 🔐 ¿Qué es SameSite?
+SameSite es un atributo de seguridad para cookies que controla si una cookie se envía o no en solicitudes "cross-site" (es decir, entre diferentes dominios/orígenes).
+
+Se usa para proteger contra ataques de tipo CSRF (Cross-Site Request Forgery), donde un sitio malicioso intenta enviar solicitudes a otro sitio en nombre del usuario.
+
+### 🧱 Modos disponibles:
+✅ SameSite=Strict (modo más seguro)
+> - La cookie solo se envía si la navegación se origina desde el mismo sitio (mismo dominio).
+> - No se envía en enlaces, redirecciones o formularios desde sitios externos.
+> - Protege fuertemente contra CSRF.
+
+Ejemplo:
+> - ✅ Visitas tuapp.com y haces clic en un botón interno → ✅ cookie se envía.
+> - ❌ Estás en facebook.com y haces clic en un link a tuapp.com → ❌ cookie no se envía.
+
+⚠️ SameSite=Lax (modo balanceado, predeterminado)
+> - Se envía en navegación de nivel superior (ej. hacer clic en un link).
+> - No se envía en peticiones automáticas tipo POST desde otro sitio.
+> - Es más flexible, pero menos seguro que Strict.
+
+⚠️ SameSite=None
+> - La cookie se envía en todos los contextos, incluso cross-site.
+> - Requiere Secure obligatorio (HTTPS).
+> - Es necesario si usas cookies en subdominios diferentes o con APIs públicas externas.
+
+✅ ¿Cuándo usar Strict?
+> - Cuando tu aplicación no necesita compartir sesión entre sitios o subdominios.
+> - Cuando quieres evitar al 100% que tu cookie se envíe desde un sitio externo.
+> - Ideal para el refresh_token en una SPA, ya que solo se debe usar desde tu frontend legítimo.
+
+💡 Ejemplo real:
+```ts
+Set-Cookie: refresh_token=abc123; HttpOnly; Secure; SameSite=Strict
+```
+
+Esto significa:
+> - Solo el navegador de miapp.com puede enviar la cookie a miapp.com.
+> - Un atacante desde hacker.com no puede forzar el envío de esa cookie.
+
 ---
 
 ## 🔐 2. Tokens de Acceso y Actualización
