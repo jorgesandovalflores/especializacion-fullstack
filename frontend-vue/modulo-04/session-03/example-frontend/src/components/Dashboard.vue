@@ -14,4 +14,9 @@
 import ProductList from '../components/ProductList.vue'
 import CartView from '../components/CartView.vue'
 import CheckoutForm from '../components/CheckoutForm.vue'
+import { onMounted } from 'vue'
+
+onMounted(()=> {
+	throw new Error('Este es un error de prueba para Sentry')
+})
 </script>
