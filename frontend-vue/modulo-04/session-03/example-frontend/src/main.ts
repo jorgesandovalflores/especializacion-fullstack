@@ -3,6 +3,7 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import * as Sentry from "@sentry/vue";
+import LogRocket from 'logrocket';
 import 'bootstrap/dist/css/bootstrap.min.css'
 
 const app = createApp(App)
@@ -13,7 +14,7 @@ Sentry.init({
   // For example, automatic IP address collection on events
   sendDefaultPii: true
 });
-
+LogRocket.init('frbxh8/javascript-vue');
 app.use(createPinia())
 app.use(router)
 app.mount('#app')
