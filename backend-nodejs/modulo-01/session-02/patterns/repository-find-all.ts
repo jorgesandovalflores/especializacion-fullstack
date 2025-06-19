@@ -1,0 +1,1 @@
+export const findAll = () => db.query('SELECT * FROM users');
