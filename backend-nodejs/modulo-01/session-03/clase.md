@@ -31,14 +31,18 @@ Node.js opera en un único hilo principal utilizando un sistema basado en **even
 - Si una función contiene una llamada asíncrona (por ejemplo, `setTimeout()`), esta no se ejecuta aquí, sino que se delega a otros componentes.
 
 ```js
-function uno() {
-	console.log('Uno');
+function foo() {
+	console.log("Inicio");
+	bar();
+	console.log("Fin");
 }
-function dos() {
-	uno();
-	console.log('Dos');
+
+function bar() {
+	console.log("Dentro de bar()");
 }
-dos();
+
+foo();
+// Stack: [foo] → [bar]
 ```
 
 #### 2. Node/Web APIs (Heap & Memory)
@@ -48,11 +52,17 @@ dos();
 - El recolector de basura (GC) limpia lo que ya no se usa.
 
 ```js
-console.log('Inicio');
-setTimeout(() => {
-	console.log('Timeout');
-}, 0);
-console.log('Fin');
+function ejecutarTareaPesada() {
+	const datos = new Array(1_000_000).fill("🚀"); // objeto grande en el heap
+
+	setTimeout(() => {
+		console.log("Datos aún en memoria:", datos.length);
+	}, 3000);
+
+	console.log("Tarea pesada programada.");
+}
+
+ejecutarTareaPesada();
 ```
 
 #### 3. Callback Queue
@@ -156,8 +166,20 @@ console.log('Fin');
 ```
 
 ## 2️⃣ CALLBACKS, PROMISES Y ASYNC/AWAIT
+JavaScript es un lenguaje **no bloqueante** y usa múltiples formas para manejar operaciones asincrónicas como lectura de archivos, llamadas a APIs, timers, etc.
+A lo largo del tiempo, se han usado tres enfoques principales:
 
 ### Callbacks
+Los **callbacks** son funciones que se pasan como argumento y se ejecutan cuando termina una operación asincrónica.
+
+#### ✅ Ventajas:
+- Simples y directas.
+- Controlan el flujo asincrónico básico.
+
+#### ❌ Problemas:
+- **Callback Hell**: anidamiento excesivo de funciones.
+- Difícil manejo de errores múltiples.
+- Problemas con código legible y mantenible.
 
 ```js
 const fs = require('fs');
@@ -168,6 +190,16 @@ fs.readFile('archivo.txt', 'utf-8', (err, data) => {
 ```
 
 ### Promises
+Las **Promises** permiten manejar asincronía de forma más estructurada. Una promesa tiene tres estados:
+- `pending` (pendiente)
+- `fulfilled` (cumplida)
+- `rejected` (rechazada)
+
+#### ✅ Ventajas:
+- Encadenamiento (`.then()`, `.catch()`).
+- Mejor manejo de errores.
+- Evita el callback hell.
+
 
 ```js
 function leerArchivo(path) {
@@ -181,6 +213,12 @@ function leerArchivo(path) {
 ```
 
 ### Async / Await
+`async/await` es azúcar sintáctica sobre Promises. Permite escribir código asincrónico que **parece sincrónico**.
+
+#### ✅ Ventajas:
+- Código más limpio y legible.
+- Más fácil de mantener.
+- Flujo de errores tradicional con `try/catch`.
 
 ```js
 async function ejecutar() {
