@@ -24,6 +24,11 @@ Node.js opera en un único hilo principal utilizando un sistema basado en **even
 ### 🧩 Componentes del Event Loop
 
 #### 1. Call Stack (pila de llamadas)
+- Es **sincrónica y LIFO** (Last In, First Out).
+- Aquí se apilan y ejecutan las funciones que llamas directamente en tu código.
+- Cuando una función termina, se desapila.
+- Si una función llama a otra, esta segunda se apila encima.
+- Si una función contiene una llamada asíncrona (por ejemplo, `setTimeout()`), esta no se ejecuta aquí, sino que se delega a otros componentes.
 
 ```js
 function uno() {
@@ -36,7 +41,11 @@ function dos() {
 dos();
 ```
 
-#### 2. Node/Web APIs
+#### 2. Node/Web APIs (Heap & Memory)
+- El **heap** es donde vive la memoria asignada dinámicamente.
+- Aquí se almacenan objetos, funciones y variables mientras están vivas.
+- Se accede a esta memoria de forma indirecta (por referencias).
+- El recolector de basura (GC) limpia lo que ya no se usa.
 
 ```js
 console.log('Inicio');
@@ -47,6 +56,9 @@ console.log('Fin');
 ```
 
 #### 3. Callback Queue
+- Es una **cola FIFO** (First In, First Out).
+- Las funciones asíncronas (`setTimeout`, `setInterval`, `on('data')`, etc.) se encolan aquí cuando están listas para ejecutarse.
+- El **Event Loop** mueve funciones a la pila de llamadas **solo si está vacía**.
 
 ```js
 setTimeout(() => {
@@ -56,6 +68,14 @@ console.log('Después del timeout');
 ```
 
 #### 4. Microtask Queue
+- Es una **cola de tareas** **prioritaria** frente a la Callback Queue.
+- Contiene tareas que deben ejecutarse **inmediatamente después** de que el Call Stack quede vacío, **antes de pasar a la siguiente fase del Event Loop**.
+- Es usada principalmente por:
+  - `Promise.then()`
+  - `Promise.catch()`
+  - `Promise.finally()`
+  - `queueMicrotask()`
+  - `MutationObserver` (en el navegador)
 
 ```js
 Promise.resolve().then(() => console.log('Microtarea'));
@@ -64,6 +84,13 @@ console.log('Fin');
 ```
 
 #### 5. libuv y Thread Pool
+- Node.js es de un solo hilo, pero usa **libuv**, una librería en C que permite manejar múltiples hilos para tareas pesadas.
+- Ejemplos:
+  - Operaciones de sistema de archivos (`fs.readFile`)
+  - DNS lookup
+  - Compresión/descompresión
+  - Criptografía
+- Estas tareas **no bloquean el Event Loop**, se delegan aquí.
 
 ```js
 const fs = require('fs');
@@ -74,12 +101,31 @@ console.log('Lectura en proceso...');
 ```
 
 #### 6. Event Loop
+- Es el **corazón del motor de ejecución**.
+- Orquesta la ejecución de tareas asincrónicas y sincrónicas.
+- Sigue un **ciclo de fases**, entre ellas:
+  - **Timers** (ejecuta `setTimeout`, `setInterval`)
+  - **I/O callbacks**
+  - **Idle/Prepare**
+  - **Poll** (espera nuevas tareas)
+  - **Check** (`setImmediate`)
+  - **Close callbacks`)
+- Revisa la **microtask queue** (como `Promise.then()`, `queueMicrotask`) **antes de pasar a la siguiente fase**.
 
 ```js
 setTimeout(() => console.log('Timeout'), 0);
 Promise.resolve().then(() => console.log('Promesa'));
 process.nextTick(() => console.log('nextTick'));
 console.log('Fin');
+```
+## 🔁 Flujo simplificado
+
+```text
+1️⃣ Ejecuta funciones del Call Stack (síncronas)
+2️⃣ Atiende microtareas (Promise.then, etc.)
+3️⃣ Si el stack está libre, toma tareas del Callback Queue
+4️⃣ Si hay I/O en libuv, espera resultados
+5️⃣ Repite el ciclo (tick)
 ```
 
 ### 🔁 Fases del Event Loop
