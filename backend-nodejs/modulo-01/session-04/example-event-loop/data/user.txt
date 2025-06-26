@@ -1,0 +1,4 @@
+
+Este es un archivo de prueba para Streams y lectura asíncrona.
+Contiene varias líneas para simular chunks de datos.
+Otra línea de ejemplo.
