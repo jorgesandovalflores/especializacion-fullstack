@@ -13,7 +13,25 @@ export class UserService {
 	}
 
 	findOne(id: number) {
-		return this.repo.findOne({ where: { id }, relations: ['orders'] });
+		return this.repo.findOne({ where: { id } });
+	}
+
+	async findOneLazy(id: number) {
+		const user = await this.repo.findOne({ where: { id } });
+
+		if (!user) return null;
+
+		// Accedemos a la relación lazy
+		const orders = await user.orders;
+
+		// Devolvemos el objeto completo (con las órdenes ya resueltas)
+		return {
+			id: user.id,
+			name: user.name,
+			orders: orders.map((order) => ({
+				id: order.id,
+			})),
+		};
 	}
 
 	async create(data: CreateUserDto) {
