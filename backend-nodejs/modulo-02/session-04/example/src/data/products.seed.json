@@ -1,0 +1,12 @@
+[
+	{
+		"name": "Smartphone Galaxy A34",
+		"description": "Teléfono con cámara triple y pantalla AMOLED",
+		"price": 999.99
+	},
+	{
+		"name": "Laptop Lenovo ThinkPad",
+		"description": "14'' FHD, 16GB RAM, 512GB SSD",
+		"price": 2999.5
+	}
+]
