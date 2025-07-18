@@ -1,0 +1,10 @@
+[
+    {
+        "id": 1,
+        "role": "sysadmin",
+        "name": "Jorge",
+        "lastname": "Sandoval",
+        "email": "jorge@identity.pe",
+        "password": "123456"
+    }
+]
