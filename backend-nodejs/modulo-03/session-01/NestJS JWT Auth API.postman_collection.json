@@ -1,0 +1,262 @@
+{
+	"info": {
+		"_postman_id": "39b1532b-7d92-4a94-9ff0-130901292377",
+		"name": "NestJS JWT Auth API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "3899489",
+		"_collection_link": "https://teamquebuu.postman.co/workspace/quebuu~afd09a55-cc68-4b62-8175-41bb4d1b8853/collection/3899489-39b1532b-7d92-4a94-9ff0-130901292377?action=share&source=collection_link&creator=3899489"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Guarda access_token y refresh_token como variables de entorno",
+							"let jsonData;",
+							"",
+							"try {",
+							"    jsonData = pm.response.json();",
+							"} catch (e) {",
+							"    console.error(\"La respuesta no es JSON\");",
+							"}",
+							"",
+							"if (jsonData && jsonData.access_token) {",
+							"    pm.environment.set(\"access_token\", jsonData.access_token);",
+							"    console.log(\"Access token guardado correctamente.\");",
+							"}",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"jorge@identity.pe\",\n  \"password\": \"123456\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/auth/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login Secure",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Guarda access_token y refresh_token como variables de entorno",
+							"let jsonData;",
+							"",
+							"try {",
+							"    jsonData = pm.response.json();",
+							"} catch (e) {",
+							"    console.error(\"La respuesta no es JSON\");",
+							"}",
+							"",
+							"if (jsonData && jsonData.access_token) {",
+							"    pm.environment.set(\"access_token\", jsonData.access_token);",
+							"    console.log(\"Access token guardado correctamente.\");",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"jorge@identity.pe\",\n  \"password\": \"123456\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/auth/login-secure",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"login-secure"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Refresh Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Guarda access_token y refresh_token como variables de entorno",
+							"let jsonData;",
+							"",
+							"try {",
+							"    jsonData = pm.response.json();",
+							"} catch (e) {",
+							"    console.error(\"La respuesta no es JSON\");",
+							"}",
+							"",
+							"if (jsonData && jsonData.access_token) {",
+							"    pm.environment.set(\"access_token\", jsonData.access_token);",
+							"    console.log(\"Access token guardado correctamente.\");",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/auth/refresh-token",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"refresh-token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Refresh Token Secure",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Guarda access_token y refresh_token como variables de entorno",
+							"let jsonData;",
+							"",
+							"try {",
+							"    jsonData = pm.response.json();",
+							"} catch (e) {",
+							"    console.error(\"La respuesta no es JSON\");",
+							"}",
+							"",
+							"if (jsonData && jsonData.access_token) {",
+							"    pm.environment.set(\"access_token\", jsonData.access_token);",
+							"    console.log(\"Access token guardado correctamente.\");",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/auth/refresh-token-secure",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"refresh-token-secure"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Logout",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/auth/logout",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get User Profile",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/users/profile",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"users",
+						"profile"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000"
+		},
+		{
+			"key": "access_token",
+			"value": ""
+		},
+		{
+			"key": "refresh_token",
+			"value": ""
+		}
+	]
+}
