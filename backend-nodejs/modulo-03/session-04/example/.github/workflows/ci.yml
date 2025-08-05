@@ -1,0 +1,40 @@
+name: CI - Build, Test and Coverage
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: => Clonar código
+        uses: actions/checkout@v3
+
+      - name: => Configurar Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: => Instalar dependencias
+        run: pnpm install
+
+      - name: => Ejecutar pruebas con cobertura
+        run: pnpm test --coverage
+
+      - name: => Mostrar cobertura en consola
+        run: |
+          echo "--------------------"
+          cat coverage/lcov-report/index.html | grep -i 'Lines'
+          echo "--------------------"
+
+      - name: => Subir artefacto HTML de cobertura
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage/report.html

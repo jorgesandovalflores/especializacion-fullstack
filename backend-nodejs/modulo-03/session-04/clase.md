@@ -267,7 +267,7 @@ jobs:
           node-version: 18
       - run: pnpm install
       - run: pnpm test
-      - run: pnpm test -- --coverage
+      - run: pnpm test --coverage
       - uses: actions/upload-artifact@v3
         with:
           name: coverage-report
