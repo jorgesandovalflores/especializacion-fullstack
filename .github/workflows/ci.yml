@@ -38,7 +38,7 @@ jobs:
           echo "--------------------"
 
       - name: => Subir artefacto HTML de cobertura
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: backend-nodejs/modulo-03/session-04/example/coverage/report.html
