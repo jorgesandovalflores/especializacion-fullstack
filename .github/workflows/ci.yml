@@ -25,6 +25,9 @@ jobs:
         with:
           node-version: '18'
 
+      - name: => Instalar pnpm
+        run: npm install -g pnpm
+
       - name: => Instalar dependencias
         run: pnpm install
 
