@@ -12,6 +12,10 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: backend-nodejs/modulo-03/session-04/example
+
     steps:
       - name: => Clonar código
         uses: actions/checkout@v3
@@ -37,4 +41,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: coverage-report
-          path: coverage/report.html
+          path: backend-nodejs/modulo-03/session-04/example/coverage/report.html
