@@ -21,7 +21,7 @@ Una API RESTful para gestionar eventos públicos o privados. Permite a los organ
 - Inscripción de usuarios en eventos disponibles.
 - Consulta de eventos públicos disponibles.
 - Swagger con toda la documentación de endpoints.
-- Docker Compose con PostgreSQL.
+- Docker Compose con PostgreSQL/Mysql.
 
 #### Endpoints principales
 
@@ -34,7 +34,6 @@ POST   /events                # Crear evento (solo organizer/admin)
 PUT    /events/:id            # Actualizar evento (solo organizer/admin)
 DELETE /events/:id            # Eliminar evento (solo organizer/admin)
 POST   /events/:id/subscribe  # Inscribirse a un evento
-GET    /me/events             # Mis eventos inscritos (attendee)
 ```
 
 #### Modelo de Base de Datos
@@ -60,8 +59,8 @@ Relaciones:
 ##### Nivel 2: Diagrama de Contenedores
 
 - **Frontend externo (opcional)** → realiza peticiones HTTP a:
-  - **API Backend Node.js/Koa** → maneja lógica de negocio, roles, suscripción.
-  - **Base de datos PostgreSQL** → almacena usuarios, roles y eventos.
+  - **API Backend Node.js (NestJS/Koa)** → maneja lógica de negocio, roles, suscripción.
+  - **Base de datos PostgreSQL/Mysql** → almacena usuarios, roles y eventos.
 
 ##### Nivel 3: Diagrama de Componentes
 
@@ -97,7 +96,6 @@ Relaciones:
 ```
 POST   /auth/refresh-token          # Renovar tokens
 POST   /auth/logout                 # Revocar tokens y cerrar sesión
-GET    /events/popular              # Listado de eventos más visitados (usando cache Redis)
 GET    /notifications/ws            # Conexión WebSocket para recibir notificaciones
 ```
 
@@ -115,9 +113,9 @@ GET    /notifications/ws            # Conexión WebSocket para recibir notificac
 
 ##### Nivel 2: Diagrama de Contenedores
 
-- Backend API + WebSocket (Node.js + Koa + ws/socket.io)
+- Backend API + WebSocket (Node.js + (NestJS/Koa) + ws/socket.io)
 - Redis para cache de eventos populares y tokens revocados
-- PostgreSQL como base persistente
+- PostgreSQL/Mysql como base persistente
 
 ##### Nivel 3: Diagrama de Componentes
 
@@ -154,7 +152,7 @@ Una API para pasajeros que solicitan taxis, y conductores que aceptan o completa
 - Aceptación del viaje (por un conductor).
 - Flujo de estado del viaje: `requested -> accepted -> on_ride -> completed`.
 - Consulta de historial de viajes por usuario.
-- Docker Compose con PostgreSQL y documentación Swagger.
+- Docker Compose con PostgreSQL/Mysql y documentación Swagger.
 
 #### Endpoints principales
 
@@ -216,7 +214,6 @@ Relaciones:
 - Seeders para usuarios y conductores de prueba.
 - Logger con Winston.
 - Pruebas unitarias del flujo completo con Jest.
-- Clusterización con PM2 opcional.
 - Autenticación basada en **Access Token (12h)** y **Refresh Token (7 días)**.
 - Endpoint para revocar tokens (`/auth/logout`) utilizando Redis como blacklist de refresh tokens.
 
@@ -226,7 +223,6 @@ Relaciones:
 POST   /auth/refresh-token          # Renovar tokens
 POST   /auth/logout                 # Revocar tokens y cerrar sesión
 GET    /ws/travels/:id/status       # WebSocket: suscribirse al estado de un viaje
-GET    /travels/active              # Consultar viajes activos (requiere Redis)
 ```
 
 #### Lógica del WebSocket
@@ -245,7 +241,7 @@ GET    /travels/active              # Consultar viajes activos (requiere Redis)
 
 - Backend REST + WebSocket server (Node.js)
 - Redis para estado activo de viajes, cache y tokens revocados
-- PostgreSQL para datos históricos
+- PostgreSQL/Mysql para datos históricos
 
 ##### Nivel 3: Diagrama de Componentes
 
