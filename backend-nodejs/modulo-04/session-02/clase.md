@@ -1,10 +1,6 @@
 # Clase 02 – Módulo 03  
 ## Documentación con Swagger (OpenAPI) en NestJS y Koa
 
-> Convención del curso: **código en inglés** y **comentarios en español**. Indentación con **4 espacios**.
-
----
-
 ## Objetivos
 
 - Entender **qué es OpenAPI** y **qué es Swagger** (y en qué se diferencian).
