@@ -4,7 +4,7 @@
 
 - Entender la **arquitectura de Docker** (Engine, cliente, daemon, API, registros, objetos).  
 - Construir **imágenes reproducibles** para apps Node.js con buenas prácticas (multi-stage).  
-- Orquestar un stack con **Docker Compose** (API + MySQL + Redis + Nginx).  
+- Orquestar un stack con **Docker Compose** (API).  
 - Gestionar **variables de entorno** y **secretos** en Docker/Compose.  
 - Aplicar **seguridad** (usuario no root, read-only, caps mínimas, healthchecks).  
 - Optimizar **tamaño/tiempo de build** y **performance** (caché, drivers, buildx).  
@@ -24,7 +24,7 @@
 2) Preparación del proyecto (Node 20 + TypeScript)  
 3) **Dockerfile** multi‑stage (builder + runtime)  
 4) **.dockerignore** y uso efectivo de caché  
-5) **Docker Compose** (API, Redis, MySQL, Nginx, healthchecks, redes, volúmenes, secrets)  
+5) **Docker Compose** (APIhealthchecks, redes, volúmenes, secrets)  
 6) Variables de entorno y **secretos** (y cómo leerlos en código)  
 7) Seguridad en contenedores (no root, read‑only, caps, no‑new‑privileges)  
 8) Optimización (imágenes base, `npm ci`/`pnpm`, multi‑arch con buildx)  
