@@ -156,7 +156,6 @@ cypress/videos
 
 public/sitemap.xml
 public/robots.txt
-*.pdf
 *.zip
 
 # sonarqube
