@@ -1,0 +1,37 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+    Simple EC2 in default VPC and default subnet.
+
+Parameters:
+    KeyPairName:
+        Type: AWS::EC2::KeyPair::KeyName
+        Default: pem-ec2
+        Description: KeyPair existente
+
+    InstanceType:
+        Type: String
+        Default: t3.micro
+        AllowedValues:
+            - t3.micro
+        Description: Tipo de instancia EC2 para la demo.
+    AmiId:
+        Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+        Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-x86_64
+        Description: AMI obtenida por SSM (Amazon Linux 2023).
+
+Resources:
+    DemoInstance:
+        Type: AWS::EC2::Instance
+        Properties:
+            ImageId: !Ref AmiId # AMI por SSM
+            InstanceType: !Ref InstanceType
+            KeyName: !Ref KeyPairName # KeyPair requerido
+            # Sin SubnetId ni SG explícitos: usa la subred y SG por defecto de la VPC
+            Tags:
+                - Key: Module
+                  Value: 01
+
+Outputs:
+    InstanceId:
+        Description: ID de la instancia creada
+        Value: !Ref DemoInstance

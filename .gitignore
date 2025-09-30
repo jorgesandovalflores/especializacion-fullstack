@@ -166,3 +166,8 @@ public/robots.txt
 
 # all dist
 **/dist
+.vscode
+**/**.pem
+**/**/.terraform
+**/**/.terraform.lock.hcl
+**/**/**.tfstate
