@@ -1,0 +1,82 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+    Simple EC2 in default VPC and default subnet (Spot via Launch Template).
+
+Parameters:
+    KeyPairName:
+        Type: AWS::EC2::KeyPair::KeyName
+        Default: pem-ec2
+        Description: KeyPair existente
+
+    InstanceType:
+        Type: String
+        Default: t3.micro
+        AllowedValues: [t3.micro]
+        Description: Tipo de instancia EC2 para la demo.
+
+    AmiId:
+        Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+        Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-x86_64
+        Description: AMI Amazon Linux 2023 desde SSM.
+
+    SpotInstanceType:
+        Type: String
+        Default: one-time
+        AllowedValues: [one-time, persistent]
+        Description: Tipo de solicitud Spot.
+
+    SpotInterruptionBehavior:
+        Type: String
+        Default: terminate
+        AllowedValues: [terminate, stop, hibernate]
+        Description: Comportamiento al ser interrumpida la instancia Spot.
+
+    SpotMaxPrice:
+        Type: String
+        Default: "" # Ej.: "0.0100" para tope de precio; vacío = precio spot vigente
+        Description: Tope de precio por hora en USD (vacío = on-market).
+
+Conditions:
+    HasMaxPrice: !Not [!Equals [!Ref SpotMaxPrice, ""]]
+
+Resources:
+    DemoLaunchTemplate:
+        Type: AWS::EC2::LaunchTemplate
+        Properties:
+            LaunchTemplateName: demo-spot-lt
+            LaunchTemplateData:
+                ImageId: !Ref AmiId
+                InstanceType: !Ref InstanceType
+                KeyName: !Ref KeyPairName
+                InstanceMarketOptions:
+                    MarketType: spot
+                    SpotOptions:
+                        SpotInstanceType: !Ref SpotInstanceType
+                        InstanceInterruptionBehavior: !Ref SpotInterruptionBehavior
+                        # MaxPrice solo si el parámetro viene con valor
+                        # (Fn::If no puede ir "inline" en mapas sin clave, así que lo ponemos aquí)
+                        # Cuando false => se omite (AWS::NoValue)
+                        MaxPrice:
+                            !If [
+                                HasMaxPrice,
+                                !Ref SpotMaxPrice,
+                                !Ref "AWS::NoValue",
+                            ]
+                TagSpecifications:
+                    - ResourceType: instance
+                      Tags:
+                          - Key: Module
+                            Value: 01
+
+    DemoInstance:
+        Type: AWS::EC2::Instance
+        Properties:
+            LaunchTemplate:
+                LaunchTemplateId: !Ref DemoLaunchTemplate
+                Version: !GetAtt DemoLaunchTemplate.LatestVersionNumber
+            # Sin SubnetId ni SG explícitos: usa VPC y SG por defecto (si existen)
+
+Outputs:
+    InstanceId:
+        Description: ID de la instancia creada
+        Value: !Ref DemoInstance
