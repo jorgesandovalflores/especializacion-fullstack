@@ -184,6 +184,8 @@ Un RDS PostgreSQL `db.t3.large` con picos de CPU en horario laboral.
 Acción: escalar a `db.r6g.large` (más vCPU/RAM) y mover el volumen a **gp3** con +IOPS.  
 Resultado esperado: latencia de consultas p95 baja 30–40% y elimina timeouts sin tocar la app.
 
+![Diagrama](./img/3.png)
+
 ---
 
 #### 3.2 Escalabilidad horizontal (Scale Out)
@@ -210,6 +212,7 @@ Resultado esperado: latencia de consultas p95 baja 30–40% y elimina timeouts s
 Una API con 2 instancias saturadas entre 7–10 p.m.  
 Acción: externalizar sesión a **ElastiCache**, mover archivos a **S3** y pasar a **4–8** réplicas pequeñas detrás de ALB.  
 Resultado: latencia p95 estable aun en pico; costo controlado con réplicas Spot para picos.
+![Diagrama](./img/4.png)
 
 ---
 
@@ -234,6 +237,8 @@ Un consumidor procesa 100 msg/minuto y el backlog crece.
 Acción: ASG con **Target Tracking** por métrica SQS (mantener ≤ 1,000 mensajes visibles). Regla simple: `desired = ceil(backlog / (msgs_por_worker*minutos))`.  
 Resultado: el grupo sube y baja workers automáticamente; backlog se mantiene estable sin intervención.
 
+![Diagrama](./img/5.webp)
+
 ---
 
 #### 3.4 Elastic Load Balancer (ELB)
@@ -255,6 +260,7 @@ Resultado: el grupo sube y baja workers automáticamente; backlog se mantiene es
 Un e-commerce separa `/api` y `/checkout`.  
 Acción: **ALB** con reglas: `/api/*` → microservicio API; `/checkout/*` → servicio de pagos. Health checks específicos por ruta.  
 Resultado: aísla fallas (si falla pagos, `/api` sigue bien); escalado independiente por Target Group.
+![Diagrama](./img/6.gif)
 
 ---
 
@@ -279,6 +285,7 @@ Resultado: aísla fallas (si falla pagos, `/api` sigue bien); escalado independi
 Se sube una imagen a S3 y dispara Lambda para generar thumbnails.  
 Acción: S3 (evento `ObjectCreated`) → Lambda procesa y guarda en S3; DynamoDB registra metadatos. **Reserved Concurrency** de 20 para controlar costos.  
 Resultado: escala de 0 a cientos de invocaciones durante una campaña sin provisionar servidores.
+![Diagrama](./img/7.jpg)
 
 ---
 
@@ -307,6 +314,7 @@ Resultado: escala de 0 a cientos de invocaciones durante una campaña sin provis
 Un backend Java recibe picos de campañas.  
 Acción: servicio ECS en **Fargate** con **Auto Scaling** por CPU objetivo 50% (mín 2, máx 20 tareas). **Capacity Provider** con 70% On-Demand y 30% Spot.  
 Resultado: escala de forma transparente sin administrar nodos; ahorro por Spot en picos y estabilidad con On-Demand.
+![Diagrama](./img/8.png)
 
 ---
 
