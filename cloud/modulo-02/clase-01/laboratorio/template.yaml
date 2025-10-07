@@ -1,0 +1,125 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Static site for usmp.identity.pe with S3 (private) + CloudFront + ACM + Route53 (alias)."
+
+Parameters:
+    HostedZoneId:
+        Type: String
+        Description: "Route 53 Hosted Zone ID for usmp.identity.pe"
+
+    BucketName:
+        Type: String
+        Default: "usmp-identity-pe-site"
+        Description: "S3 bucket name to store the static website files"
+
+    DomainName:
+        Type: String
+        Default: "usmp.identity.pe"
+        Description: "FQDN to serve via CloudFront"
+
+Resources:
+    WebsiteBucket:
+        Type: AWS::S3::Bucket
+        Properties:
+            BucketName: !Ref BucketName
+            OwnershipControls:
+                Rules:
+                    - ObjectOwnership: BucketOwnerPreferred
+            PublicAccessBlockConfiguration:
+                BlockPublicAcls: true
+                BlockPublicPolicy: true
+                IgnorePublicAcls: true
+                RestrictPublicBuckets: true
+            VersioningConfiguration:
+                Status: Enabled
+            Tags:
+                - Key: Name
+                  Value: !Ref BucketName
+
+    SSLCertificate:
+        Type: AWS::CertificateManager::Certificate
+        Properties:
+            DomainName: !Ref DomainName
+            ValidationMethod: DNS
+            DomainValidationOptions:
+                - DomainName: !Ref DomainName
+                  HostedZoneId: !Ref HostedZoneId
+            Tags:
+                - Key: Name
+                  Value: !Sub "Cert-${DomainName}"
+
+    CFOriginAccessControl:
+        Type: AWS::CloudFront::OriginAccessControl
+        Properties:
+            OriginAccessControlConfig:
+                Name: !Sub "oac-${DomainName}"
+                Description: !Sub "OAC for ${DomainName}"
+                OriginAccessControlOriginType: s3
+                SigningBehavior: always
+                SigningProtocol: sigv4
+
+    CloudFrontDistribution:
+        Type: AWS::CloudFront::Distribution
+        Properties:
+            DistributionConfig:
+                Enabled: true
+                DefaultRootObject: index.html
+                HttpVersion: http2
+                PriceClass: PriceClass_100
+                Aliases:
+                    - !Ref DomainName
+                Origins:
+                    - Id: S3Origin
+                      DomainName: !GetAtt WebsiteBucket.RegionalDomainName
+                      S3OriginConfig: {}
+                      OriginAccessControlId: !GetAtt CFOriginAccessControl.Id
+                DefaultCacheBehavior:
+                    TargetOriginId: S3Origin
+                    ViewerProtocolPolicy: redirect-to-https
+                    AllowedMethods: [GET, HEAD]
+                    CachedMethods: [GET, HEAD]
+                    Compress: true
+                    ForwardedValues:
+                        QueryString: false
+                        Cookies:
+                            Forward: none
+                ViewerCertificate:
+                    AcmCertificateArn: !Ref SSLCertificate
+                    SslSupportMethod: sni-only
+
+    BucketPolicy:
+        Type: AWS::S3::BucketPolicy
+        Properties:
+            Bucket: !Ref WebsiteBucket
+            PolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    - Sid: AllowCloudFrontReadViaOAC
+                      Effect: Allow
+                      Principal:
+                          Service: cloudfront.amazonaws.com
+                      Action: ["s3:GetObject"]
+                      Resource: !Sub "${WebsiteBucket.Arn}/*"
+                      Condition:
+                          StringEquals:
+                              AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
+
+    DNSRecordA:
+        Type: AWS::Route53::RecordSet
+        Properties:
+            HostedZoneId: !Ref HostedZoneId
+            Name: !Ref DomainName
+            Type: A
+            AliasTarget:
+                DNSName: !GetAtt CloudFrontDistribution.DomainName
+                HostedZoneId: Z2FDTNDATAQYW2 # CloudFront global hosted zone ID
+
+Outputs:
+    SiteURL:
+        Description: "HTTPS URL"
+        Value: !Sub "https://${DomainName}"
+    BucketToUpload:
+        Description: "Upload your index.html (and assets) here"
+        Value: !Ref WebsiteBucket
+    DistributionDomain:
+        Description: "CloudFront domain"
+        Value: !GetAtt CloudFrontDistribution.DomainName
