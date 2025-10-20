@@ -1,0 +1,273 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "VPC + S3 Gateway Endpoint + S3 Bucket (BPA, SSE, Versioning, CORS) + EC2 con Role para acceso privado a S3"
+
+Parameters:
+    VpcCidr:
+        Type: String
+        Default: 10.0.0.0/16
+        Description: CIDR para la VPC
+    PublicSubnet1Cidr:
+        Type: String
+        Default: 10.0.1.0/24
+    PublicSubnet2Cidr:
+        Type: String
+        Default: 10.0.2.0/24
+    AllowedSSH:
+        Type: String
+        Default: 0.0.0.0/0
+        Description: CIDR para SSH (restringe a tu IP en producción)
+    KeyPairName:
+        Type: AWS::EC2::KeyPair::KeyName
+        Description: Nombre del KeyPair para la EC2
+    BucketName:
+        Type: String
+        Default: ""
+        Description: (Opcional) Nombre del bucket. Si vacío, se genera con el ID del stack.
+    AllowedOrigins:
+        Type: CommaDelimitedList
+        Default: "http://localhost:3000,http://localhost:5173,http://test-s3.usmp.identity.pe"
+        Description: Orígenes permitidos para CORS
+    InstanceType:
+        Type: String
+        Default: t3.micro
+        AllowedValues:
+            - t3.micro
+        Description: Tipo de instancia
+
+Mappings:
+    RegionMap:
+        us-east-1:
+            AL2023: "ami-0b72821e2f351e396"
+        us-east-2:
+            AL2023: "ami-0a4121235da23f3aa"
+        us-west-2:
+            AL2023: "ami-013168dc3850ef002"
+
+Conditions:
+    HasBucketName: !Not [!Equals [!Ref BucketName, ""]]
+
+Resources:
+    VPC:
+        Type: AWS::EC2::VPC
+        Properties:
+            CidrBlock: !Ref VpcCidr
+            EnableDnsHostnames: true
+            EnableDnsSupport: true
+            Tags: [{ Key: Name, Value: !Sub "${AWS::StackName}-vpc" }]
+
+    IGW:
+        Type: AWS::EC2::InternetGateway
+    VPCGatewayAttachment:
+        Type: AWS::EC2::VPCGatewayAttachment
+        Properties:
+            InternetGatewayId: !Ref IGW
+            VpcId: !Ref VPC
+
+    PublicSubnet1:
+        Type: AWS::EC2::Subnet
+        Properties:
+            VpcId: !Ref VPC
+            CidrBlock: !Ref PublicSubnet1Cidr
+            MapPublicIpOnLaunch: true
+            AvailabilityZone: !Select [0, !GetAZs ""]
+            Tags: [{ Key: Name, Value: !Sub "${AWS::StackName}-public-1" }]
+
+    PublicSubnet2:
+        Type: AWS::EC2::Subnet
+        Properties:
+            VpcId: !Ref VPC
+            CidrBlock: !Ref PublicSubnet2Cidr
+            MapPublicIpOnLaunch: true
+            AvailabilityZone: !Select [1, !GetAZs ""]
+            Tags: [{ Key: Name, Value: !Sub "${AWS::StackName}-public-2" }]
+
+    PublicRouteTable:
+        Type: AWS::EC2::RouteTable
+        Properties:
+            VpcId: !Ref VPC
+            Tags: [{ Key: Name, Value: !Sub "${AWS::StackName}-public-rt" }]
+
+    PublicRoute:
+        Type: AWS::EC2::Route
+        Properties:
+            RouteTableId: !Ref PublicRouteTable
+            DestinationCidrBlock: 0.0.0.0/0
+            GatewayId: !Ref IGW
+
+    PublicSubnet1RouteTableAssociation:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+            SubnetId: !Ref PublicSubnet1
+            RouteTableId: !Ref PublicRouteTable
+
+    PublicSubnet2RouteTableAssociation:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+            SubnetId: !Ref PublicSubnet2
+            RouteTableId: !Ref PublicRouteTable
+
+    # Gateway Endpoint para S3 (rutas privadas a S3)
+    S3GatewayEndpoint:
+        Type: AWS::EC2::VPCEndpoint
+        Properties:
+            VpcId: !Ref VPC
+            ServiceName: !Sub "com.amazonaws.${AWS::Region}.s3"
+            RouteTableIds: [!Ref PublicRouteTable]
+            VpcEndpointType: Gateway
+            PolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    - Sid: AllowAllS3FromVpc
+                      Effect: Allow
+                      Principal: "*"
+                      Action: ["s3:*"]
+                      Resource: ["*"]
+
+    S3Bucket:
+        Type: AWS::S3::Bucket
+        Properties:
+            BucketName:
+                !If [
+                    HasBucketName,
+                    !Ref BucketName,
+                    !Sub "${AWS::StackName}-${AWS::AccountId}-${AWS::Region}",
+                ]
+            PublicAccessBlockConfiguration:
+                BlockPublicAcls: true
+                IgnorePublicAcls: true
+                BlockPublicPolicy: true
+                RestrictPublicBuckets: true
+            VersioningConfiguration:
+                Status: Enabled
+            BucketEncryption:
+                ServerSideEncryptionConfiguration:
+                    - ServerSideEncryptionByDefault:
+                          SSEAlgorithm: AES256
+            CorsConfiguration:
+                CorsRules:
+                    - AllowedHeaders: ["*"]
+                      AllowedMethods: ["GET", "PUT", "POST"]
+                      AllowedOrigins: !Ref AllowedOrigins
+                      ExposedHeaders: ["ETag", "x-amz-request-id", "x-amz-id-2"]
+                      MaxAge: 3000
+            LifecycleConfiguration:
+                Rules:
+                    - Id: TransitionToIA
+                      Status: Enabled
+                      Transitions:
+                          - StorageClass: STANDARD_IA
+                            TransitionInDays: 30
+        DeletionPolicy: Retain
+
+    S3BucketPolicy:
+        Type: AWS::S3::BucketPolicy
+        Properties:
+            Bucket: !Ref S3Bucket
+            PolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    - Sid: DenyNonVPCE
+                      Effect: Deny
+                      Principal: "*"
+                      Action: "s3:*"
+                      Resource:
+                          - !Sub "arn:aws:s3:::${S3Bucket}"
+                          - !Sub "arn:aws:s3:::${S3Bucket}/*"
+                      Condition:
+                          StringNotEquals:
+                              aws:SourceVpce: !Ref S3GatewayEndpoint
+                    - Sid: AllowEC2RoleOnPrefix
+                      Effect: Allow
+                      Principal:
+                          AWS: !GetAtt Ec2Role.Arn
+                      Action:
+                          - "s3:ListBucket"
+                      Resource: !Sub "arn:aws:s3:::${S3Bucket}"
+                    - Sid: AllowObjectLevel
+                      Effect: Allow
+                      Principal:
+                          AWS: !GetAtt Ec2Role.Arn
+                      Action:
+                          - "s3:PutObject"
+                          - "s3:GetObject"
+                          - "s3:DeleteObject"
+                          - "s3:PutObjectTagging"
+                      Resource: !Sub "arn:aws:s3:::${S3Bucket}/uploads/*"
+
+    Ec2SecurityGroup:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+            GroupDescription: Permitir SSH y HTTP
+            VpcId: !Ref VPC
+            SecurityGroupIngress:
+                - IpProtocol: tcp
+                  FromPort: 22
+                  ToPort: 22
+                  CidrIp: !Ref AllowedSSH
+                - IpProtocol: tcp
+                  FromPort: 3000
+                  ToPort: 3000
+                  CidrIp: 0.0.0.0/0
+            Tags: [{ Key: Name, Value: !Sub "${AWS::StackName}-sg" }]
+
+    Ec2Role:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service: [ec2.amazonaws.com]
+                      Action: ["sts:AssumeRole"]
+            Path: "/"
+            Policies:
+                - PolicyName: S3BucketLimitedAccess
+                  PolicyDocument:
+                      Version: "2012-10-17"
+                      Statement:
+                          - Effect: Allow
+                            Action:
+                                - "s3:ListBucket"
+                            Resource: !Sub "arn:aws:s3:::${S3Bucket}"
+                          - Effect: Allow
+                            Action:
+                                - "s3:PutObject"
+                                - "s3:GetObject"
+                                - "s3:DeleteObject"
+                                - "s3:PutObjectTagging"
+                            Resource: !Sub "arn:aws:s3:::${S3Bucket}/uploads/*"
+            Tags: [{ Key: Name, Value: !Sub "${AWS::StackName}-role" }]
+
+    Ec2InstanceProfile:
+        Type: AWS::IAM::InstanceProfile
+        Properties:
+            Path: "/"
+            Roles: [!Ref Ec2Role]
+
+    Ec2Instance:
+        Type: AWS::EC2::Instance
+        Properties:
+            ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", AL2023]
+            InstanceType: !Ref InstanceType
+            IamInstanceProfile: !Ref Ec2InstanceProfile
+            KeyName: !Ref KeyPairName
+            SubnetId: !Ref PublicSubnet1
+            SecurityGroupIds: [!Ref Ec2SecurityGroup]
+            Tags: [{ Key: Name, Value: !Sub "${AWS::StackName}-ec2" }]
+
+Outputs:
+    BucketNameOut:
+        Description: Nombre del bucket S3
+        Value: !Ref S3Bucket
+        Export:
+            Name: !Sub "${AWS::StackName}-bucket-name"
+    Ec2PublicIp:
+        Description: IP pública de la instancia
+        Value: !GetAtt Ec2Instance.PublicIp
+    VpcId:
+        Description: ID de la VPC
+        Value: !Ref VPC
+    S3VpceId:
+        Description: ID del Gateway VPC Endpoint de S3
+        Value: !Ref S3GatewayEndpoint
