@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "VPC + S3 Gateway Endpoint + S3 Bucket (BPA, SSE, Versioning, CORS) + EC2 con Role para acceso privado a S3"
+Description: "VPC + S3 Gateway Endpoint + S3 Bucket (BPA, SSE, Versioning, CORS) + EC2 con Role para acceso privado a S3 - DEMO CLASS"
 
 Parameters:
     VpcCidr:
@@ -57,6 +57,9 @@ Resources:
 
     IGW:
         Type: AWS::EC2::InternetGateway
+        Properties:
+            Tags: [{ Key: Name, Value: !Sub "${AWS::StackName}-igw" }]
+
     VPCGatewayAttachment:
         Type: AWS::EC2::VPCGatewayAttachment
         Properties:
@@ -89,6 +92,7 @@ Resources:
 
     PublicRoute:
         Type: AWS::EC2::Route
+        DependsOn: VPCGatewayAttachment
         Properties:
             RouteTableId: !Ref PublicRouteTable
             DestinationCidrBlock: 0.0.0.0/0
@@ -146,7 +150,7 @@ Resources:
             CorsConfiguration:
                 CorsRules:
                     - AllowedHeaders: ["*"]
-                      AllowedMethods: ["GET", "PUT", "POST"]
+                      AllowedMethods: ["GET", "PUT", "POST", "DELETE", "HEAD"]
                       AllowedOrigins: !Ref AllowedOrigins
                       ExposedHeaders: ["ETag", "x-amz-request-id", "x-amz-id-2"]
                       MaxAge: 3000
@@ -157,7 +161,8 @@ Resources:
                       Transitions:
                           - StorageClass: STANDARD_IA
                             TransitionInDays: 30
-        DeletionPolicy: Retain
+        # CAMBIO IMPORTANTE: Permite la eliminación del bucket
+        DeletionPolicy: Delete
 
     S3BucketPolicy:
         Type: AWS::S3::BucketPolicy
@@ -166,33 +171,15 @@ Resources:
             PolicyDocument:
                 Version: "2012-10-17"
                 Statement:
-                    - Sid: DenyNonVPCE
-                      Effect: Deny
-                      Principal: "*"
+                    # POLÍTICA SIMPLIFICADA - Permisos completos para el rol EC2
+                    - Sid: AllowFullS3Access
+                      Effect: Allow
+                      Principal:
+                          AWS: !GetAtt Ec2Role.Arn
                       Action: "s3:*"
                       Resource:
                           - !Sub "arn:aws:s3:::${S3Bucket}"
                           - !Sub "arn:aws:s3:::${S3Bucket}/*"
-                      Condition:
-                          StringNotEquals:
-                              aws:SourceVpce: !Ref S3GatewayEndpoint
-                    - Sid: AllowEC2RoleOnPrefix
-                      Effect: Allow
-                      Principal:
-                          AWS: !GetAtt Ec2Role.Arn
-                      Action:
-                          - "s3:ListBucket"
-                      Resource: !Sub "arn:aws:s3:::${S3Bucket}"
-                    - Sid: AllowObjectLevel
-                      Effect: Allow
-                      Principal:
-                          AWS: !GetAtt Ec2Role.Arn
-                      Action:
-                          - "s3:PutObject"
-                          - "s3:GetObject"
-                          - "s3:DeleteObject"
-                          - "s3:PutObjectTagging"
-                      Resource: !Sub "arn:aws:s3:::${S3Bucket}/uploads/*"
 
     Ec2SecurityGroup:
         Type: AWS::EC2::SecurityGroup
@@ -208,6 +195,10 @@ Resources:
                   FromPort: 3000
                   ToPort: 3000
                   CidrIp: 0.0.0.0/0
+                - IpProtocol: tcp
+                  FromPort: 80
+                  ToPort: 80
+                  CidrIp: 0.0.0.0/0
             Tags: [{ Key: Name, Value: !Sub "${AWS::StackName}-sg" }]
 
     Ec2Role:
@@ -222,21 +213,13 @@ Resources:
                       Action: ["sts:AssumeRole"]
             Path: "/"
             Policies:
-                - PolicyName: S3BucketLimitedAccess
+                - PolicyName: S3FullAccess
                   PolicyDocument:
                       Version: "2012-10-17"
                       Statement:
                           - Effect: Allow
-                            Action:
-                                - "s3:ListBucket"
-                            Resource: !Sub "arn:aws:s3:::${S3Bucket}"
-                          - Effect: Allow
-                            Action:
-                                - "s3:PutObject"
-                                - "s3:GetObject"
-                                - "s3:DeleteObject"
-                                - "s3:PutObjectTagging"
-                            Resource: !Sub "arn:aws:s3:::${S3Bucket}/uploads/*"
+                            Action: "s3:*"
+                            Resource: "*"
             Tags: [{ Key: Name, Value: !Sub "${AWS::StackName}-role" }]
 
     Ec2InstanceProfile:
@@ -271,3 +254,6 @@ Outputs:
     S3VpceId:
         Description: ID del Gateway VPC Endpoint de S3
         Value: !Ref S3GatewayEndpoint
+    Ec2RoleArn:
+        Description: ARN del rol de la EC2 con permisos completos de S3
+        Value: !GetAtt Ec2Role.Arn

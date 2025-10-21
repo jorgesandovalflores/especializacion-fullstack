@@ -1,0 +1,257 @@
+{
+    "info": {
+        "name": "NestJS S3 Backend API",
+        "description": "API para gestión de archivos en Amazon S3",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://34.229.216.213:3000",
+            "type": "string"
+        },
+        {
+            "key": "bucketName",
+            "value": "curso-s3-ec2-905418316214-us-east-1",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "Health Check",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/s3/files",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["s3", "files"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Upload Single File",
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "formdata",
+                    "formdata": [
+                        {
+                            "key": "file",
+                            "type": "file",
+                            "src": "/path/to/your/file.jpg"
+                        },
+                        {
+                            "key": "folder",
+                            "type": "text",
+                            "value": "documents"
+                        }
+                    ]
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/s3/upload",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["s3", "upload"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Upload Multiple Files",
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "formdata",
+                    "formdata": [
+                        {
+                            "key": "files",
+                            "type": "file",
+                            "src": "/path/to/file1.jpg"
+                        },
+                        {
+                            "key": "files",
+                            "type": "file",
+                            "src": "/path/to/file2.pdf"
+                        },
+                        {
+                            "key": "folder",
+                            "type": "text",
+                            "value": "uploads"
+                        }
+                    ]
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/s3/upload-multiple",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["s3", "upload-multiple"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "List Files",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/s3/files",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["s3", "files"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "List Files with Prefix",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/s3/files?prefix=documents/",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["s3", "files"],
+                    "query": [
+                        {
+                            "key": "prefix",
+                            "value": "documents/"
+                        }
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Generate Download Presigned URL",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/s3/presigned-url?key=documents/1739984112345-document.pdf&expiresIn=3600",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["s3", "presigned-url"],
+                    "query": [
+                        {
+                            "key": "key",
+                            "value": "documents/1739984112345-document.pdf"
+                        },
+                        {
+                            "key": "expiresIn",
+                            "value": "3600"
+                        }
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Generate Upload Presigned URL",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/s3/upload-presigned-url?key=documents/new-file.pdf&contentType=application/pdf&expiresIn=1800",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["s3", "upload-presigned-url"],
+                    "query": [
+                        {
+                            "key": "key",
+                            "value": "documents/new-file.pdf"
+                        },
+                        {
+                            "key": "contentType",
+                            "value": "application/pdf"
+                        },
+                        {
+                            "key": "expiresIn",
+                            "value": "1800"
+                        }
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get File URL (CORREGIDO - usando query)",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/s3/files?key=images/1761059128215-service_plus.svg",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["s3", "files"],
+                    "query": [
+                        {
+                            "key": "key",
+                            "value": "images/1761059128215-service_plus.svg"
+                        }
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Delete File",
+            "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/s3/files?key=documents/1739984112345-document.pdf",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["s3", "files"],
+                    "query": [
+                        {
+                            "key": "key",
+                            "value": "documents/1739984112345-document.pdf"
+                        }
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Test Upload with Presigned URL",
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [
+                            "// First get upload URL",
+                            "pm.sendRequest({",
+                            "    url: pm.variables.get('baseUrl') + '/s3/upload-presigned-url?key=test-upload.txt&contentType=text/plain&expiresIn=3600',",
+                            "    method: 'GET',",
+                            "}, function (err, response) {",
+                            "    if (!err) {",
+                            "        const presignedData = response.json();",
+                            "        console.log('Upload URL:', presignedData.url);",
+                            "        pm.environment.set('uploadUrl', presignedData.url);",
+                            "        pm.environment.set('fileKey', presignedData.key);",
+                            "    }",
+                            "});"
+                        ]
+                    }
+                }
+            ],
+            "request": {
+                "method": "PUT",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "text/plain"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "Este es un archivo de prueba subido via URL pre-firmada"
+                },
+                "url": {
+                    "raw": "{{uploadUrl}}",
+                    "host": ["{{uploadUrl}}"]
+                }
+            },
+            "response": []
+        }
+    ]
+}
