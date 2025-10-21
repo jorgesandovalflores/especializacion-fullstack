@@ -553,6 +553,7 @@ S3 es el pilar de almacenamiento de objetos en AWS. Una postura segura incluye *
 export AWS_REGION=us-east-1
 export STACK_NAME=curso-s3-ec2
 export KEY_NAME=pem-usmp
+PORT=3000
 
 aws cloudformation deploy \
   --template-file template.yaml \
