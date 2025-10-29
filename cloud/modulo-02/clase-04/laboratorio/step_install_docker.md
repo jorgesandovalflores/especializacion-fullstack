@@ -57,6 +57,7 @@ docker run -d \
   --name rest-s3-backend \
   -p 3000:3000 \
   -e AWS_S3_BUCKET_NAME="curso-s3-ec2-905418316214-us-east-1" \
-  -e ALLOWED_ORIGINS="http://13.220.95.204:3000,http://localhost:3000" \
+  -e ALLOWED_ORIGINS="http://3.88.170.148:3000,http://localhost:3000" \
+  -e CLOUDFRONT_BASE_URL="https://d35yc6b0827xff.cloudfront.net" \
   usmpandescloud/rest-s3:latest
 ```
