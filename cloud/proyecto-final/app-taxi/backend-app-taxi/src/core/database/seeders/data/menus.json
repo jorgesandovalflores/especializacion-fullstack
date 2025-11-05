@@ -1,0 +1,29 @@
+[
+    {
+        "key": "passenger_home",
+        "text": "Pedir taxi",
+        "iconUrl": "https://firebasestorage.googleapis.com/v0/b/andes-fullstack-esp.firebasestorage.app/o/ic_menu_home.svg?alt=media&token=68bb3f3b-2666-4909-980c-4bf2a82b507d",
+        "deeplink": "app-taxi://passenger/home",
+        "order": 1,
+        "application": "PASSENGER",
+        "status": "ACTIVE"
+    },
+    {
+        "key": "passenger_profile",
+        "text": "Perfil",
+        "iconUrl": "https://firebasestorage.googleapis.com/v0/b/andes-fullstack-esp.firebasestorage.app/o/ic_menu_profile.svg?alt=media&token=18a54789-a5e6-4402-9f57-4b5fb6c34437",
+        "deeplink": "app-taxi://passenger/profile",
+        "order": 2,
+        "application": "PASSENGER",
+        "status": "ACTIVE"
+    },
+    {
+        "key": "passenger_historic",
+        "text": "Historial",
+        "iconUrl": "https://firebasestorage.googleapis.com/v0/b/andes-fullstack-esp.firebasestorage.app/o/ic_manu_historic.svg?alt=media&token=c792cc2e-d052-4a08-a448-104fe2506240",
+        "deeplink": "app-taxi://passenger/historic",
+        "order": 3,
+        "application": "PASSENGER",
+        "status": "ACTIVE"
+    }
+]

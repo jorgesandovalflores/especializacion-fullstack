@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+    http:
+        image: ${BACKEND_IMAGE}:${BACKEND_TAG}
+        build:
+            context: ../backend-evently
+            dockerfile: Dockerfile
+        platform: ${HTTP_DOCKER_PLATFORM}
+        container_name: ${HTTP_CONTAINER_NAME}
+        restart: unless-stopped
+        env_file:
+            - .env
+        environment:
+            NODE_ENV: ${HTTP_NODE_ENV}
+            NODE_DEBUG: ${HTTP_NODE_DEBUG}
+            APP_PORT: ${HTTP_APP_PORT}
+            GLOBAL_PREFIX: ${HTTP_GLOBAL_PREFIX}
+            DB_HOST: ${MYSQL_CONTAINER_NAME}
+            DB_PORT: 3306
+            DB_USER: root
+            DB_PASS: ${MYSQL_ROOT_PASSWORD}
+            DB_POOL: ${HTTP_DB_POOL}
+            DB_NAME: ${MYSQL_DATABASE}
+            DB_LOGGING: ${HTTP_DB_LOGGING}
+            DB_SYNCHRONIZE: ${HTTP_DB_SYNCHRONIZE}
+            JWT_ACCESS_SECRET: ${HTTP_JWT_ACCESS_SECRET}
+            JWT_ACCESS_TTL: ${HTTP_JWT_ACCESS_TTL}
+            JWT_REFRESH_SECRET: ${HTTP_JWT_REFRESH_SECRET}
+            JWT_REFRESH_TTL: ${HTTP_JWT_REFRESH_TTL}
+            REDIS_HOST: ${REDIS_CONTAINER_NAME}
+            REDIS_PORT: 6379
+            REDIS_DB: ${REDIS_DB}
+            REDIS_PASSWORD: ${REDIS_PASSWORD}
+            SWAGGER_TITLE: ${HTTP_SWAGGER_TITLE}
+            SWAGGER_DESC: ${HTTP_SWAGGER_DESC}
+            SWAGGER_VERSION: ${HTTP_SWAGGER_VERSION}
+        ports:
+            - "${HTTP_APP_PORT}:${HTTP_APP_PORT}"
+        networks:
+            - internal_network
+
+networks:
+    internal_network:
+        external: true
+        name: ${NETWORK}

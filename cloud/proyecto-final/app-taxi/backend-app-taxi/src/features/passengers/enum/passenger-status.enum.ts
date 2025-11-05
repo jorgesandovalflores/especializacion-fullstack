@@ -1,0 +1,6 @@
+export enum PassengerStatus {
+    ACTIVE = "ACTIVE",
+    INACTIVE_REGISTER = "INACTIVE_REGISTER",
+    SUSPENDED = "SUSPENDED",
+    DELETED = "DELETED",
+}

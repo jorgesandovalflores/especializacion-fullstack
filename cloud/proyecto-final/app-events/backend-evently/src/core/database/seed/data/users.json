@@ -1,0 +1,20 @@
+[
+    {
+        "name": "Admin",
+        "email": "admin@evently.local",
+        "password": "admin123",
+        "role": "admin"
+    },
+    {
+        "name": "Organizer",
+        "email": "organizer@evently.local",
+        "password": "organizer123",
+        "role": "organizer"
+    },
+    {
+        "name": "Attendee",
+        "email": "attendee@evently.local",
+        "password": "attendee123",
+        "role": "attendee"
+    }
+]

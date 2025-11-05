@@ -1,0 +1,14 @@
+.git
+.gitignore
+Dockerfile
+docker-compose*.yml
+node_modules
+npm-debug.log
+pnpm-debug.log
+dist
+infra
+coverage
+.env*
+**/*.spec.ts
+**/*.test.ts
+.DS_Store

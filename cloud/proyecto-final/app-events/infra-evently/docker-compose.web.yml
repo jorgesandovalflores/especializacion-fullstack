@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+    web:
+        image: ${WEB_IMAGE}:${WEB_TAG}
+        build:
+            context: ../web-evently
+            dockerfile: Dockerfile
+        platform: ${WEB_DOCKER_PLATFORM}
+        container_name: ${WEB_CONTAINER_NAME}
+        restart: unless-stopped
+        env_file:
+            - .env
+        environment:
+            VITE_API_BASE_URL: ${WEB_VITE_API_BASE_URL}
+            VITE_WS_HOST: ${WEB_VITE_WS_HOST}
+        ports:
+            - "${WEB_APP_PORT}:80"
+        networks:
+            - internal_network
+
+networks:
+    internal_network:
+        external: true
+        name: ${NETWORK}

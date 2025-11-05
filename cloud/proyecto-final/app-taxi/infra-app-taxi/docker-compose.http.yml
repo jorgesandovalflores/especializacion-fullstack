@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+    http:
+        image: ${BACKEND_IMAGE}:${BACKEND_TAG}
+        build:
+            context: ../backend-app-taxi
+            dockerfile: Dockerfile
+        platform: ${HTTP_DOCKER_PLATFORM}
+        container_name: ${HTTP_CONTAINER_NAME}
+        restart: unless-stopped
+        env_file:
+            - .env
+        environment:
+            NODE_ENV: ${HTTP_NODE_ENV}
+            NODE_DEBUG: ${HTTP_NODE_DEBUG}
+            NO_COLOR: ${HTTP_NO_COLOR}
+            DB_HOST: ${MYSQL_CONTAINER_NAME}
+            DB_PORT: 3306
+            DB_USERNAME: root
+            DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            DB_NAME: ${MYSQL_DATABASE}
+            DB_POOL: ${HTTP_DB_POOL}
+            REDIS_HOST: ${REDIS_CONTAINER_NAME}
+            REDIS_PORT: 6379
+            APPLICATION_PORT: ${HTTP_APPLICATION_PORT}
+            JWT_ACCESS_TTL_SEC: ${HTTP_JWT_ACCESS_TTL_SEC}
+            JWT_REFRESH_TTL_SEC: ${HTTP_JWT_REFRESH_TTL_SEC}
+            JWT_ACCESS_SECRET: ${HTTP_JWT_ACCESS_SECRET}
+            JWT_REFRESH_SECRET: ${HTTP_JWT_REFRESH_SECRET}
+            BREVO_API_KEY: ${HTTP_BREVO_API_KEY}
+            BREVO_TEXT_SMS: ${HTTP_BREVO_TEXT_SMS}
+            BREVO_SENDER: ${HTTP_BREVO_SENDER}
+            GOOGLE_API_KEY: ${HTTP_GOOGLE_API_KEY}
+            ADDRESS_SEARCH_PROVIDER: ${HTTP_ADDRESS_SEARCH_PROVIDER}
+        ports:
+            - "${HTTP_APPLICATION_PORT}:${HTTP_APPLICATION_PORT}"
+        networks:
+            - internal_network
+
+networks:
+    internal_network:
+        external: true
+        name: ${NETWORK}

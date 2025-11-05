@@ -171,3 +171,4 @@ public/robots.txt
 **/**/.terraform
 **/**/.terraform.lock.hcl
 **/**/**.tfstate
+**/**/*.env

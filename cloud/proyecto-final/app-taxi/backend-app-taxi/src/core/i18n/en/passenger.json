@@ -1,0 +1,12 @@
+{
+    "notExists": "Your phone number does not exist.",
+    "validation": {
+        "required": "This field is required.",
+        "isString": "The value must be a text string.",
+        "maxLength": "The value exceeds the maximum allowed length.",
+        "email": "The email address format is invalid.",
+        "minLength": "The value is too short.",
+        "pattern": "The value format is invalid.",
+        "emailAlreadyUsed": "The email is being used by another user."
+    }
+}

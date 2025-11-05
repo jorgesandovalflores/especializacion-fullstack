@@ -1,0 +1,21 @@
+services:
+    redis:
+        image: redis:8.2-alpine
+        container_name: ${REDIS_CONTAINER_NAME}
+        restart: unless-stopped
+        ports:
+            - "${REDIS_PORT}:6379"
+        command: ["redis-server", "--appendonly", "yes"]
+        volumes:
+            - internal_volume:/data
+        networks:
+            - internal_network
+
+volumes:
+    internal_volume:
+        name: ${REDIS_VOLUME}
+
+networks:
+    internal_network:
+        external: true
+        name: ${NETWORK}

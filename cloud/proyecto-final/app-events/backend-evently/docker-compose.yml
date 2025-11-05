@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  app:
+    image: evently-app:${APP_VERSION:-1.0.0}
+    build:
+      context: .
+      args:
+        APP_VERSION: ${APP_VERSION:-1.0.0}
+        BUILD_DATE: ${BUILD_DATE:-unknown}
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=${APP_PORT:-3000}
+    ports:
+      - "${APP_PORT:-3000}:${APP_PORT:-3000}"
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:${APP_PORT:-3000}/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  app-network:
+    driver: bridge
