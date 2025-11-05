@@ -315,3 +315,5 @@ jobs:
 -   `eb deploy` y `eb logs` para iterar.
 -   Replicar a `prd` cambiando nombres/variables y capacidad.
 -   Misma estructura de carpetas y archivos.
+
+![Diagrama](./_img/1.png)
