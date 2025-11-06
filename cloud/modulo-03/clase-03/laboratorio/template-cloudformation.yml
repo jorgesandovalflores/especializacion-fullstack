@@ -1,0 +1,269 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "VPC + Subnets + RDS (MySQL/PostgreSQL) en privado + EC2 Amazon Linux 2023 en publico"
+
+Parameters:
+    ProjectName:
+        Type: String
+        Default: rds-class
+    KeyName:
+        Type: AWS::EC2::KeyPair::KeyName
+        Description: Nombre de un key pair EC2 existente
+    VpcCidr:
+        Type: String
+        Default: 10.0.0.0/16
+    PublicSubnetCidr:
+        Type: String
+        Default: 10.0.1.0/24
+    PrivateSubnet1Cidr:
+        Type: String
+        Default: 10.0.2.0/24
+    PrivateSubnet2Cidr:
+        Type: String
+        Default: 10.0.3.0/24
+    AllowedSSH:
+        Type: String
+        Default: 0.0.0.0/0
+        Description: "Restringe a tu IP publica para produccion (x.x.x.x/32)"
+    DBEngine:
+        Type: String
+        AllowedValues: [mysql, postgres]
+        Default: postgres
+    DBEngineVersion:
+        Type: String
+        Default: "15"
+    DBUsername:
+        Type: String
+        Default: app_user
+    DBPassword:
+        Type: String
+        NoEcho: true
+        MinLength: 8
+        Description: "Usa Secrets Manager en produccion"
+    DBName:
+        Type: String
+        Default: appdb
+        Description: "Nombre de la base de datos que se creara por defecto"
+    DBAllocatedStorage:
+        Type: Number
+        Default: 20
+    DBInstanceClass:
+        Type: String
+        Default: db.t4g.micro
+    MultiAZ:
+        Type: String
+        AllowedValues: ["true", "false"]
+        Default: "false"
+
+Mappings:
+    EngineMap:
+        mysql:
+            Port: "3306"
+            Family: "mysql8.0"
+        postgres:
+            Port: "5432"
+            Family: "postgres15"
+
+Resources:
+    VPC:
+        Type: AWS::EC2::VPC
+        Properties:
+            CidrBlock: !Ref VpcCidr
+            EnableDnsHostnames: true
+            EnableDnsSupport: true
+            Tags: [{ Key: Name, Value: !Sub "${ProjectName}-vpc" }]
+
+    IGW:
+        Type: AWS::EC2::InternetGateway
+        Properties:
+            Tags: [{ Key: Name, Value: !Sub "${ProjectName}-igw" }]
+
+    AttachIgw:
+        Type: AWS::EC2::VPCGatewayAttachment
+        Properties:
+            InternetGatewayId: !Ref IGW
+            VpcId: !Ref VPC
+
+    PublicSubnet:
+        Type: AWS::EC2::Subnet
+        Properties:
+            VpcId: !Ref VPC
+            CidrBlock: !Ref PublicSubnetCidr
+            MapPublicIpOnLaunch: true
+            AvailabilityZone: !Select [0, !GetAZs ""]
+            Tags: [{ Key: Name, Value: !Sub "${ProjectName}-public-a" }]
+
+    PrivateSubnet1:
+        Type: AWS::EC2::Subnet
+        Properties:
+            VpcId: !Ref VPC
+            CidrBlock: !Ref PrivateSubnet1Cidr
+            AvailabilityZone: !Select [0, !GetAZs ""]
+            Tags: [{ Key: Name, Value: !Sub "${ProjectName}-private-a" }]
+
+    PrivateSubnet2:
+        Type: AWS::EC2::Subnet
+        Properties:
+            VpcId: !Ref VPC
+            CidrBlock: !Ref PrivateSubnet2Cidr
+            AvailabilityZone: !Select [1, !GetAZs ""]
+            Tags: [{ Key: Name, Value: !Sub "${ProjectName}-private-b" }]
+
+    PublicRT:
+        Type: AWS::EC2::RouteTable
+        Properties:
+            VpcId: !Ref VPC
+            Tags: [{ Key: Name, Value: !Sub "${ProjectName}-public-rt" }]
+
+    PublicRoute:
+        Type: AWS::EC2::Route
+        Properties:
+            RouteTableId: !Ref PublicRT
+            DestinationCidrBlock: 0.0.0.0/0
+            GatewayId: !Ref IGW
+
+    PublicRTAssoc:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+            SubnetId: !Ref PublicSubnet
+            RouteTableId: !Ref PublicRT
+
+    SGEC2:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+            GroupDescription: "Access to EC2 (22,80,443,3000)"
+            VpcId: !Ref VPC
+            SecurityGroupIngress:
+                - IpProtocol: tcp
+                  FromPort: 22
+                  ToPort: 22
+                  CidrIp: !Ref AllowedSSH
+                - IpProtocol: tcp
+                  FromPort: 80
+                  ToPort: 80
+                  CidrIp: 0.0.0.0/0
+                - IpProtocol: tcp
+                  FromPort: 443
+                  ToPort: 443
+                  CidrIp: 0.0.0.0/0
+                - IpProtocol: tcp
+                  FromPort: 3000
+                  ToPort: 3000
+                  CidrIp: 0.0.0.0/0
+            Tags: [{ Key: Name, Value: !Sub "${ProjectName}-sg-ec2" }]
+
+    SGRDS:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+            GroupDescription: "Allow DB traffic from EC2 SG"
+            VpcId: !Ref VPC
+            SecurityGroupIngress:
+                - IpProtocol: tcp
+                  FromPort: !FindInMap [EngineMap, !Ref DBEngine, Port]
+                  ToPort: !FindInMap [EngineMap, !Ref DBEngine, Port]
+                  SourceSecurityGroupId: !Ref SGEC2
+            Tags: [{ Key: Name, Value: !Sub "${ProjectName}-sg-rds" }]
+
+    SGRedis:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+            GroupDescription: "Allow Redis traffic from EC2 SG"
+            VpcId: !Ref VPC
+            SecurityGroupIngress:
+                - IpProtocol: tcp
+                  FromPort: 6379
+                  ToPort: 6379
+                  SourceSecurityGroupId: !Ref SGEC2
+            Tags: [{ Key: Name, Value: !Sub "${ProjectName}-sg-redis" }]
+
+    DBSubnetGroup:
+        Type: AWS::RDS::DBSubnetGroup
+        Properties:
+            DBSubnetGroupDescription: "Subredes privadas para RDS"
+            SubnetIds: [!Ref PrivateSubnet1, !Ref PrivateSubnet2]
+            Tags: [{ Key: Name, Value: !Sub "${ProjectName}-dbsubnet" }]
+
+    RedisSubnetGroup:
+        Type: AWS::ElastiCache::SubnetGroup
+        Properties:
+            Description: "Subredes privadas para Redis"
+            SubnetIds: [!Ref PrivateSubnet1, !Ref PrivateSubnet2]
+            CacheSubnetGroupName: !Sub "${ProjectName}-redis-subnet"
+
+    RDSInstance:
+        Type: AWS::RDS::DBInstance
+        Properties:
+            DBInstanceIdentifier: !Sub "${ProjectName}-${DBEngine}"
+            DBName: !Ref DBName
+            Engine: !Ref DBEngine
+            EngineVersion: !Ref DBEngineVersion
+            MasterUsername: !Ref DBUsername
+            MasterUserPassword: !Ref DBPassword
+            AllocatedStorage: !Ref DBAllocatedStorage
+            DBInstanceClass: !Ref DBInstanceClass
+            StorageType: gp3
+            PubliclyAccessible: false
+            MultiAZ: !Ref MultiAZ
+            VPCSecurityGroups: [!Ref SGRDS]
+            DBSubnetGroupName: !Ref DBSubnetGroup
+            DeletionProtection: false
+            BackupRetentionPeriod: 7
+            AutoMinorVersionUpgrade: true
+            CopyTagsToSnapshot: true
+            EnableIAMDatabaseAuthentication: false
+            Tags:
+                - { Key: Name, Value: !Sub "${ProjectName}-rds" }
+
+    RedisCluster:
+        Type: AWS::ElastiCache::CacheCluster
+        Properties:
+            CacheNodeType: cache.t4g.micro
+            Engine: redis
+            NumCacheNodes: 1
+            CacheSubnetGroupName: !Ref RedisSubnetGroup
+            VpcSecurityGroupIds: [!Ref SGRedis]
+            Port: 6379
+            Tags:
+                - { Key: Name, Value: !Sub "${ProjectName}-redis" }
+
+    EC2Role:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    - Effect: Allow
+                      Principal: { Service: ec2.amazonaws.com }
+                      Action: sts:AssumeRole
+            ManagedPolicyArns:
+                - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+            Tags: [{ Key: Name, Value: !Sub "${ProjectName}-ec2-role" }]
+
+    EC2InstanceProfile:
+        Type: AWS::IAM::InstanceProfile
+        Properties:
+            Roles: [!Ref EC2Role]
+
+    EC2Instance:
+        Type: AWS::EC2::Instance
+        Properties:
+            IamInstanceProfile: !Ref EC2InstanceProfile
+            ImageId: !Sub "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}"
+            InstanceType: t3.micro
+            KeyName: !Ref KeyName
+            SubnetId: !Ref PublicSubnet
+            SecurityGroupIds: [!Ref SGEC2]
+            Tags: [{ Key: Name, Value: !Sub "${ProjectName}-ec2" }]
+
+Outputs:
+    VpcId:
+        Value: !Ref VPC
+    EC2PublicIp:
+        Value: !GetAtt EC2Instance.PublicIp
+    RDSEndpoint:
+        Value: !GetAtt RDSInstance.Endpoint.Address
+    DBPort:
+        Value: !FindInMap [EngineMap, !Ref DBEngine, Port]
+    RedisEndpoint:
+        Value: !GetAtt RedisCluster.RedisEndpoint.Address
+    RedisPort:
+        Value: !GetAtt RedisCluster.RedisEndpoint.Port
