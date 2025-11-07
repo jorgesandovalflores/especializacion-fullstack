@@ -350,6 +350,8 @@ Outputs:
     DBPort:
         Value: !FindInMap [EngineMap, !Ref DBEngine, Port]
 ```
+![Diagrama](./_img/1.svg)
+![Diagrama](./_img/2.svg)
 
 **Cómo probar (pasos rápidos)**
 
