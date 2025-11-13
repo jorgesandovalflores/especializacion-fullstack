@@ -1,0 +1,132 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "CloudWatch Alarms for NestJS Monitoring Demo"
+
+Parameters:
+    EnvironmentName:
+        Type: String
+        Default: monitoring-demo-env
+    NotificationEmail:
+        Type: String
+        Description: Email address for alarm notifications
+
+Resources:
+    AlarmSNSTopic:
+        Type: AWS::SNS::Topic
+        Properties:
+            TopicName: !Sub "${EnvironmentName}-alarms"
+            Subscription:
+                - Protocol: email
+                  Endpoint: !Ref NotificationEmail
+
+    HighCPUAlarm:
+        Type: AWS::CloudWatch::Alarm
+        Properties:
+            AlarmName: !Sub "${EnvironmentName}-high-cpu"
+            AlarmDescription: "CPU utilization is too high"
+            MetricName: CPUUtilization
+            Namespace: AWS/ElasticBeanstalk
+            Statistic: Average
+            Period: 300
+            EvaluationPeriods: 2
+            Threshold: 80
+            ComparisonOperator: GreaterThanThreshold
+            AlarmActions:
+                - !Ref AlarmSNSTopic
+            Dimensions:
+                - Name: EnvironmentName
+                  Value: !Ref EnvironmentName
+
+    LowCPUAlarm:
+        Type: AWS::CloudWatch::Alarm
+        Properties:
+            AlarmName: !Sub "${EnvironmentName}-low-cpu"
+            AlarmDescription: "CPU utilization is too low - instance might be stuck"
+            MetricName: CPUUtilization
+            Namespace: AWS/ElasticBeanstalk
+            Statistic: Average
+            Period: 300
+            EvaluationPeriods: 3
+            Threshold: 5
+            ComparisonOperator: LessThanThreshold
+            AlarmActions:
+                - !Ref AlarmSNSTopic
+            Dimensions:
+                - Name: EnvironmentName
+                  Value: !Ref EnvironmentName
+
+    HighLatencyAlarm:
+        Type: AWS::CloudWatch::Alarm
+        Properties:
+            AlarmName: !Sub "${EnvironmentName}-high-latency"
+            AlarmDescription: "Application latency is too high"
+            MetricName: ApplicationLatencyP90
+            Namespace: AWS/ElasticBeanstalk
+            Statistic: Average
+            Period: 300
+            EvaluationPeriods: 2
+            Threshold: 3000
+            ComparisonOperator: GreaterThanThreshold
+            AlarmActions:
+                - !Ref AlarmSNSTopic
+            Dimensions:
+                - Name: EnvironmentName
+                  Value: !Ref EnvironmentName
+
+    ErrorRateAlarm:
+        Type: AWS::CloudWatch::Alarm
+        Properties:
+            AlarmName: !Sub "${EnvironmentName}-high-error-rate"
+            AlarmDescription: "5xx error rate is too high"
+            MetricName: ApplicationRequests5xx
+            Namespace: AWS/ElasticBeanstalk
+            Statistic: Sum
+            Period: 300
+            EvaluationPeriods: 1
+            Threshold: 10
+            ComparisonOperator: GreaterThanThreshold
+            AlarmActions:
+                - !Ref AlarmSNSTopic
+            Dimensions:
+                - Name: EnvironmentName
+                  Value: !Ref EnvironmentName
+
+    EnvironmentHealthAlarm:
+        Type: AWS::CloudWatch::Alarm
+        Properties:
+            AlarmName: !Sub "${EnvironmentName}-poor-health"
+            AlarmDescription: "Environment health is poor"
+            MetricName: EnvironmentHealth
+            Namespace: AWS/ElasticBeanstalk
+            Statistic: Average
+            Period: 300
+            EvaluationPeriods: 1
+            Threshold: 20
+            ComparisonOperator: LessThanThreshold
+            AlarmActions:
+                - !Ref AlarmSNSTopic
+            Dimensions:
+                - Name: EnvironmentName
+                  Value: !Ref EnvironmentName
+
+    LowMemoryAlarm:
+        Type: AWS::CloudWatch::Alarm
+        Properties:
+            AlarmName: !Sub "${EnvironmentName}-low-memory"
+            AlarmDescription: "Low available memory"
+            MetricName: InstanceMemoryUsed
+            Namespace: AWS/ElasticBeanstalk
+            Statistic: Average
+            Period: 300
+            EvaluationPeriods: 2
+            Threshold: 90
+            ComparisonOperator: GreaterThanThreshold
+            AlarmActions:
+                - !Ref AlarmSNSTopic
+            Dimensions:
+                - Name: EnvironmentName
+                  Value: !Ref EnvironmentName
+
+Outputs:
+    AlarmTopicARN:
+        Description: SNS Topic ARN for alarm notifications
+        Value: !Ref AlarmSNSTopic

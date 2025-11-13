@@ -1,0 +1,119 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "CloudWatch Dashboard for NestJS Monitoring Demo - FIXED"
+
+Parameters:
+    EnvironmentName:
+        Type: String
+        Default: monitoring-demo-env
+    ApplicationName:
+        Type: String
+        Default: monitoring-demo-app
+
+Resources:
+    MonitoringDashboard:
+        Type: AWS::CloudWatch::Dashboard
+        Properties:
+            DashboardName: !Sub "${EnvironmentName}-dashboard"
+            DashboardBody: !Sub |
+                {
+                  "widgets": [
+                    {
+                      "type": "metric",
+                      "x": 0,
+                      "y": 0,
+                      "width": 12,
+                      "height": 6,
+                      "properties": {
+                        "metrics": [
+                          [ "AWS/ElasticBeanstalk", "EnvironmentHealth", "EnvironmentName", "${EnvironmentName}" ],
+                          [ ".", "ApplicationRequestsTotal", ".", "." ],
+                          [ ".", "ApplicationRequests5xx", ".", "." ],
+                          [ ".", "ApplicationRequests4xx", ".", "." ],
+                          [ ".", "ApplicationRequests2xx", ".", "." ]
+                        ],
+                        "view": "timeSeries",
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "title": "BeanStalk Health & Requests",
+                        "period": 300,
+                        "stat": "Sum"
+                      }
+                    },
+                    {
+                      "type": "metric",
+                      "x": 0,
+                      "y": 6,
+                      "width": 12,
+                      "height": 6,
+                      "properties": {
+                        "metrics": [
+                          [ "AWS/ElasticBeanstalk", "CPUUtilization", "EnvironmentName", "${EnvironmentName}" ],
+                          [ ".", "LoadAverage1min", ".", "." ]
+                        ],
+                        "view": "timeSeries",
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "title": "CPU & Load Average",
+                        "period": 300,
+                        "stat": "Average"
+                      }
+                    },
+                    {
+                      "type": "metric",
+                      "x": 12,
+                      "y": 0,
+                      "width": 12,
+                      "height": 6,
+                      "properties": {
+                        "metrics": [
+                          [ "AWS/ElasticBeanstalk", "RootFilesystemUtil", "EnvironmentName", "${EnvironmentName}" ],
+                          [ ".", "InstanceMemoryUsed", ".", "." ]
+                        ],
+                        "view": "timeSeries",
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "title": "Memory & Disk Usage",
+                        "period": 300,
+                        "stat": "Average"
+                      }
+                    },
+                    {
+                      "type": "metric",
+                      "x": 12,
+                      "y": 6,
+                      "width": 12,
+                      "height": 6,
+                      "properties": {
+                        "metrics": [
+                          [ "AWS/ElasticBeanstalk", "ApplicationLatencyP10", "EnvironmentName", "${EnvironmentName}" ],
+                          [ ".", "ApplicationLatencyP50", ".", "." ],
+                          [ ".", "ApplicationLatencyP90", ".", "." ]
+                        ],
+                        "view": "timeSeries",
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "title": "Application Latency Percentiles",
+                        "period": 300,
+                        "stat": "Average"
+                      }
+                    },
+                    {
+                      "type": "log",
+                      "x": 0,
+                      "y": 12,
+                      "width": 24,
+                      "height": 6,
+                      "properties": {
+                        "query": "SOURCE '/aws/elasticbeanstalk/${EnvironmentName}/var/log/web.stdout.log' | fields @timestamp, @message | filter @message like /error|exception/ | sort @timestamp desc | limit 20",
+                        "region": "${AWS::Region}",
+                        "title": "Recent Errors from Application Logs",
+                        "view": "table"
+                      }
+                    }
+                  ]
+                }
+
+Outputs:
+    DashboardURL:
+        Description: CloudWatch Dashboard URL
+        Value: !Sub "https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=${EnvironmentName}-dashboard"

@@ -1,0 +1,127 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Elastic Beanstalk for NestJS Monitoring Demo - Node.js 22"
+
+Parameters:
+    ApplicationName:
+        Type: String
+        Default: "monitoring-demo-app"
+    EnvironmentName:
+        Type: String
+        Default: "monitoring-demo-env"
+    InstanceType:
+        Type: String
+        Default: "t3.micro"
+    KeyName:
+        Type: String
+        Default: "pem-usmp"
+    SourceS3Bucket:
+        Type: String
+        Description: "S3 bucket containing your application ZIP"
+    SourceS3Key:
+        Type: String
+        Default: "monitoring-demo.zip"
+        Description: "S3 key of your application ZIP"
+
+Resources:
+    BeanstalkApplication:
+        Type: AWS::ElasticBeanstalk::Application
+        Properties:
+            ApplicationName: !Ref ApplicationName
+            Description: "NestJS Monitoring Demo Application"
+
+    BeanstalkApplicationVersion:
+        Type: AWS::ElasticBeanstalk::ApplicationVersion
+        Properties:
+            ApplicationName: !Ref ApplicationName
+            Description: "NestJS Monitoring Application Version 1.0"
+            SourceBundle:
+                S3Bucket: !Ref SourceS3Bucket
+                S3Key: !Ref SourceS3Key
+        DependsOn: BeanstalkApplication
+
+    BeanstalkEnvironment:
+        Type: AWS::ElasticBeanstalk::Environment
+        Properties:
+            ApplicationName: !Ref ApplicationName
+            EnvironmentName: !Ref EnvironmentName
+            Description: "NestJS Monitoring Demo Environment"
+            SolutionStackName: "64bit Amazon Linux 2023 v6.6.8 running Node.js 22"
+            VersionLabel: !Ref BeanstalkApplicationVersion
+            OptionSettings:
+                # Instance configuration
+                - Namespace: aws:autoscaling:launchconfiguration
+                  OptionName: InstanceType
+                  Value: !Ref InstanceType
+                - Namespace: aws:autoscaling:launchconfiguration
+                  OptionName: EC2KeyName
+                  Value: !Ref KeyName
+                - Namespace: aws:autoscaling:launchconfiguration
+                  OptionName: IamInstanceProfile
+                  Value: !Ref BeanstalkEC2InstanceProfile
+
+                # Scaling configuration
+                - Namespace: aws:autoscaling:asg
+                  OptionName: MinSize
+                  Value: "1"
+                - Namespace: aws:autoscaling:asg
+                  OptionName: MaxSize
+                  Value: "1"
+
+                # Environment variables
+                - Namespace: aws:elasticbeanstalk:application:environment
+                  OptionName: NODE_ENV
+                  Value: "production"
+                - Namespace: aws:elasticbeanstalk:application:environment
+                  OptionName: PORT
+                  Value: "8080"
+
+                # Enhanced health reporting
+                - Namespace: aws:elasticbeanstalk:healthreporting:system
+                  OptionName: SystemType
+                  Value: "enhanced"
+
+                # CloudWatch Logs configuration
+                - Namespace: aws:elasticbeanstalk:cloudwatch:logs
+                  OptionName: StreamLogs
+                  Value: true
+                - Namespace: aws:elasticbeanstalk:cloudwatch:logs
+                  OptionName: RetentionInDays
+                  Value: "7"
+                - Namespace: aws:elasticbeanstalk:cloudwatch:logs
+                  OptionName: DeleteOnTerminate
+                  Value: true
+
+                # X-Ray configuration
+                - Namespace: aws:elasticbeanstalk:xray
+                  OptionName: XRayEnabled
+                  Value: true
+
+    BeanstalkEC2Role:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service: ec2.amazonaws.com
+                      Action: sts:AssumeRole
+            ManagedPolicyArns:
+                - arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier
+                - arn:aws:iam::aws:policy/AWSElasticBeanstalkMulticontainerDocker
+                - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+                - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+
+    BeanstalkEC2InstanceProfile:
+        Type: AWS::IAM::InstanceProfile
+        Properties:
+            Roles:
+                - !Ref BeanstalkEC2Role
+
+Outputs:
+    EnvironmentURL:
+        Description: "URL of your NestJS application"
+        Value: !GetAtt BeanstalkEnvironment.EndpointURL
+    EnvironmentName:
+        Description: "Beanstalk Environment Name"
+        Value: !Ref EnvironmentName
