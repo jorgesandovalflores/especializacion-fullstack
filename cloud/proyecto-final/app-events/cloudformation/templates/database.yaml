@@ -1,0 +1,127 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "MySQL database for app-evently"
+
+Parameters:
+    ProjectName:
+        Type: String
+        Default: app-evently
+    Environment:
+        Type: String
+        Default: dev
+
+Resources:
+    MySQLSecurityGroup:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+            GroupDescription: Security group for MySQL
+            VpcId:
+                Fn::ImportValue: !Sub ${ProjectName}-${Environment}-vpc-id
+            SecurityGroupIngress:
+                - IpProtocol: tcp
+                  FromPort: 3306
+                  ToPort: 3306
+                  SourceSecurityGroupId: !Ref BackendSecurityGroup
+
+    ECSExecutionRole:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service: ecs-tasks.amazonaws.com
+                      Action: sts:AssumeRole
+            ManagedPolicyArns:
+                - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+    MySQLTaskDefinition:
+        Type: AWS::ECS::TaskDefinition
+        Properties:
+            Family: !Sub ${ProjectName}-${Environment}-mysql
+            NetworkMode: awsvpc
+            RequiresCompatibilities:
+                - FARGATE
+            Cpu: 256
+            Memory: 512
+            ExecutionRoleArn: !Ref ECSExecutionRole
+            ContainerDefinitions:
+                - Name: mysql
+                  Image: public.ecr.aws/docker/library/mysql:8.0.35
+                  Essential: true
+                  PortMappings:
+                      - ContainerPort: 3306
+                  Environment:
+                      - Name: TZ
+                        Value: America/Lima
+                      - Name: MYSQL_ROOT_PASSWORD
+                        Value: root
+                      - Name: MYSQL_DATABASE
+                        Value: db_app_evently
+                      - Name: MYSQL_ROOT_HOST
+                        Value: "%"
+                  LogConfiguration:
+                      LogDriver: awslogs
+                      Options:
+                          awslogs-group: !Ref CloudWatchLogGroup
+                          awslogs-region: !Ref AWS::Region
+                          awslogs-stream-prefix: mysql
+
+    ServiceDiscovery:
+        Type: AWS::ServiceDiscovery::Service
+        Properties:
+            Name: mysql-app-evently
+            DnsConfig:
+                NamespaceId:
+                    Fn::ImportValue: !Sub ${ProjectName}-${Environment}-namespace-id
+                DnsRecords:
+                    - Type: A
+                      TTL: 60
+            HealthCheckCustomConfig:
+                FailureThreshold: 1
+
+    MySQLService:
+        Type: AWS::ECS::Service
+        DependsOn: MySQLTaskDefinition
+        Properties:
+            ServiceName: mysql
+            Cluster:
+                Fn::ImportValue: !Sub ${ProjectName}-${Environment}-cluster-name
+            TaskDefinition: !Ref MySQLTaskDefinition
+            DesiredCount: 1
+            LaunchType: FARGATE
+            NetworkConfiguration:
+                AwsvpcConfiguration:
+                    AssignPublicIp: DISABLED
+                    Subnets:
+                        - Fn::ImportValue: !Sub ${ProjectName}-${Environment}-private-subnet-1
+                        - Fn::ImportValue: !Sub ${ProjectName}-${Environment}-private-subnet-2
+                    SecurityGroups:
+                        - !Ref MySQLSecurityGroup
+            ServiceRegistries:
+                - RegistryArn: !GetAtt ServiceDiscovery.Arn
+
+    CloudWatchLogGroup:
+        Type: AWS::Logs::LogGroup
+        Properties:
+            LogGroupName: !Sub /ecs/${ProjectName}-${Environment}-mysql
+            RetentionInDays: 30
+
+    BackendSecurityGroup:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+            GroupDescription: Security group for Backend
+            VpcId:
+                Fn::ImportValue: !Sub ${ProjectName}-${Environment}-vpc-id
+
+Outputs:
+    MySQLServiceName:
+        Description: MySQL Service Discovery Name
+        Value: !GetAtt ServiceDiscovery.Name
+        Export:
+            Name: !Sub ${ProjectName}-${Environment}-mysql-service-name
+
+    BackendSecurityGroupId:
+        Description: Backend Security Group ID
+        Value: !Ref BackendSecurityGroup
+        Export:
+            Name: !Sub ${ProjectName}-${Environment}-backend-sg-id

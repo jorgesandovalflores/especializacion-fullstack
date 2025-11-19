@@ -1,0 +1,188 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Backend API for app-evently"
+
+Parameters:
+    ProjectName:
+        Type: String
+        Default: app-evently
+    Environment:
+        Type: String
+        Default: dev
+    BackendImage:
+        Type: String
+        Default: http-app-evently
+    BackendTag:
+        Type: String
+        Default: 0.0.1
+
+Resources:
+    BackendSecurityGroup:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+            GroupDescription: Security group for Backend API
+            VpcId:
+                Fn::ImportValue: !Sub ${ProjectName}-${Environment}-vpc-id
+            SecurityGroupIngress:
+                - IpProtocol: tcp
+                  FromPort: 3001
+                  ToPort: 3001
+                  CidrIp: 0.0.0.0/0
+            SecurityGroupEgress:
+                - IpProtocol: tcp
+                  FromPort: 3306
+                  ToPort: 3306
+                  CidrIp: 10.0.0.0/16
+                - IpProtocol: tcp
+                  FromPort: 6379
+                  ToPort: 6379
+                  CidrIp: 10.0.0.0/16
+                - IpProtocol: tcp
+                  FromPort: 443
+                  ToPort: 443
+                  CidrIp: 0.0.0.0/0
+                - IpProtocol: tcp
+                  FromPort: 80
+                  ToPort: 80
+                  CidrIp: 0.0.0.0/0
+
+    ECSExecutionRole:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service: ecs-tasks.amazonaws.com
+                      Action: sts:AssumeRole
+            ManagedPolicyArns:
+                - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+    ECSTaskRole:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service: ecs-tasks.amazonaws.com
+                      Action: sts:AssumeRole
+            ManagedPolicyArns:
+                - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+
+    BackendTaskDefinition:
+        Type: AWS::ECS::TaskDefinition
+        Properties:
+            Family: !Sub ${ProjectName}-${Environment}-backend
+            NetworkMode: awsvpc
+            RequiresCompatibilities:
+                - FARGATE
+            Cpu: 512
+            Memory: 1024
+            ExecutionRoleArn: !Ref ECSExecutionRole
+            TaskRoleArn: !Ref ECSTaskRole
+            ContainerDefinitions:
+                - Name: backend
+                  Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${BackendImage}:${BackendTag}
+                  Essential: true
+                  PortMappings:
+                      - ContainerPort: 3001
+                  Environment:
+                      - Name: NODE_ENV
+                        Value: development
+                      - Name: NODE_DEBUG
+                        Value: "false"
+                      - Name: APP_PORT
+                        Value: "3001"
+                      - Name: GLOBAL_PREFIX
+                        Value: "/api"
+                      - Name: DB_HOST
+                        Value: mysql-app-evently
+                      - Name: DB_PORT
+                        Value: "3306"
+                      - Name: DB_USER
+                        Value: root
+                      - Name: DB_PASS
+                        Value: root
+                      - Name: DB_NAME
+                        Value: db_app_evently
+                      - Name: DB_POOL
+                        Value: "5"
+                      - Name: DB_LOGGING
+                        Value: "true"
+                      - Name: DB_SYNCHRONIZE
+                        Value: "false"
+                      - Name: REDIS_HOST
+                        Value: redis-app-evently
+                      - Name: REDIS_PORT
+                        Value: "6379"
+                      - Name: REDIS_DB
+                        Value: "0"
+                      - Name: REDIS_PASSWORD
+                        Value: ""
+                      - Name: JWT_ACCESS_SECRET
+                        Value: "!Evently@access"
+                      - Name: JWT_ACCESS_TTL
+                        Value: "12h"
+                      - Name: JWT_REFRESH_SECRET
+                        Value: "!Evently@refresh"
+                      - Name: JWT_REFRESH_TTL
+                        Value: "7d"
+                      - Name: SWAGGER_TITLE
+                        Value: Evently API
+                      - Name: SWAGGER_DESC
+                        Value: Backend para gestión de eventos (Evently)
+                      - Name: SWAGGER_VERSION
+                        Value: 1.0.0
+                  LogConfiguration:
+                      LogDriver: awslogs
+                      Options:
+                          awslogs-group: !Ref CloudWatchLogGroup
+                          awslogs-region: !Ref AWS::Region
+                          awslogs-stream-prefix: backend
+
+    ServiceDiscovery:
+        Type: AWS::ServiceDiscovery::Service
+        Properties:
+            Name: http-app-evently
+            DnsConfig:
+                NamespaceId:
+                    Fn::ImportValue: !Sub ${ProjectName}-${Environment}-namespace-id
+                DnsRecords:
+                    - Type: A
+                      TTL: 60
+            HealthCheckCustomConfig:
+                FailureThreshold: 1
+
+    BackendService:
+        Type: AWS::ECS::Service
+        Properties:
+            ServiceName: backend
+            Cluster:
+                Fn::ImportValue: !Sub ${ProjectName}-${Environment}-cluster-name
+            TaskDefinition: !Ref BackendTaskDefinition
+            DesiredCount: 1
+            LaunchType: FARGATE
+            NetworkConfiguration:
+                AwsvpcConfiguration:
+                    AssignPublicIp: DISABLED
+                    Subnets:
+                        - Fn::ImportValue: !Sub ${ProjectName}-${Environment}-private-subnet-1 # ← CAMBIADO
+                        - Fn::ImportValue: !Sub ${ProjectName}-${Environment}-private-subnet-2 # ← CAMBIADO
+                    SecurityGroups:
+                        - !Ref BackendSecurityGroup
+            ServiceRegistries:
+                - RegistryArn: !GetAtt ServiceDiscovery.Arn
+            HealthCheckGracePeriodSeconds: 120
+
+    CloudWatchLogGroup:
+        Type: AWS::Logs::LogGroup
+        Properties:
+            LogGroupName: !Sub /ecs/${ProjectName}-${Environment}-backend
+            RetentionInDays: 30
+
+Outputs:
+    BackendServiceName:
+        Description: Backend Service Discovery Name
+        Value: !GetAtt ServiceDiscovery.Name
+        Export:
+            Name: !Sub ${ProjectName}-${Environment}-backend-service-name
