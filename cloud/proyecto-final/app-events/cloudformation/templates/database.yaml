@@ -10,18 +10,6 @@ Parameters:
         Default: dev
 
 Resources:
-    MySQLSecurityGroup:
-        Type: AWS::EC2::SecurityGroup
-        Properties:
-            GroupDescription: Security group for MySQL
-            VpcId:
-                Fn::ImportValue: !Sub ${ProjectName}-${Environment}-vpc-id
-            SecurityGroupIngress:
-                - IpProtocol: tcp
-                  FromPort: 3306
-                  ToPort: 3306
-                  SourceSecurityGroupId: !Ref BackendSecurityGroup
-
     ECSExecutionRole:
         Type: AWS::IAM::Role
         Properties:
@@ -33,6 +21,19 @@ Resources:
                       Action: sts:AssumeRole
             ManagedPolicyArns:
                 - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+            Policies:
+                - PolicyName: ECRAccess
+                  PolicyDocument:
+                      Statement:
+                          - Effect: Allow
+                            Action:
+                                - ecr:GetAuthorizationToken
+                                - ecr:BatchCheckLayerAvailability
+                                - ecr:GetDownloadUrlForLayer
+                                - ecr:BatchGetImage
+                                - logs:CreateLogStream
+                                - logs:PutLogEvents
+                            Resource: "*"
 
     MySQLTaskDefinition:
         Type: AWS::ECS::TaskDefinition
@@ -46,13 +47,11 @@ Resources:
             ExecutionRoleArn: !Ref ECSExecutionRole
             ContainerDefinitions:
                 - Name: mysql
-                  Image: public.ecr.aws/docker/library/mysql:8.0.35
+                  Image: public.ecr.aws/docker/library/mysql:8.0
                   Essential: true
                   PortMappings:
                       - ContainerPort: 3306
                   Environment:
-                      - Name: TZ
-                        Value: America/Lima
                       - Name: MYSQL_ROOT_PASSWORD
                         Value: root
                       - Name: MYSQL_DATABASE
@@ -66,10 +65,10 @@ Resources:
                           awslogs-region: !Ref AWS::Region
                           awslogs-stream-prefix: mysql
 
-    ServiceDiscovery:
+    MySQLServiceDiscovery:
         Type: AWS::ServiceDiscovery::Service
         Properties:
-            Name: mysql-app-evently
+            Name: mysql
             DnsConfig:
                 NamespaceId:
                     Fn::ImportValue: !Sub ${ProjectName}-${Environment}-namespace-id
@@ -81,7 +80,6 @@ Resources:
 
     MySQLService:
         Type: AWS::ECS::Service
-        DependsOn: MySQLTaskDefinition
         Properties:
             ServiceName: mysql
             Cluster:
@@ -96,9 +94,9 @@ Resources:
                         - Fn::ImportValue: !Sub ${ProjectName}-${Environment}-private-subnet-1
                         - Fn::ImportValue: !Sub ${ProjectName}-${Environment}-private-subnet-2
                     SecurityGroups:
-                        - !Ref MySQLSecurityGroup
+                        - Fn::ImportValue: !Sub ${ProjectName}-${Environment}-database-sg-id
             ServiceRegistries:
-                - RegistryArn: !GetAtt ServiceDiscovery.Arn
+                - RegistryArn: !GetAtt MySQLServiceDiscovery.Arn
 
     CloudWatchLogGroup:
         Type: AWS::Logs::LogGroup
@@ -106,22 +104,9 @@ Resources:
             LogGroupName: !Sub /ecs/${ProjectName}-${Environment}-mysql
             RetentionInDays: 30
 
-    BackendSecurityGroup:
-        Type: AWS::EC2::SecurityGroup
-        Properties:
-            GroupDescription: Security group for Backend
-            VpcId:
-                Fn::ImportValue: !Sub ${ProjectName}-${Environment}-vpc-id
-
 Outputs:
-    MySQLServiceName:
-        Description: MySQL Service Discovery Name
-        Value: !GetAtt ServiceDiscovery.Name
+    MySQLHost:
+        Description: MySQL Hostname
+        Value: !Sub mysql.${ProjectName}.local
         Export:
-            Name: !Sub ${ProjectName}-${Environment}-mysql-service-name
-
-    BackendSecurityGroupId:
-        Description: Backend Security Group ID
-        Value: !Ref BackendSecurityGroup
-        Export:
-            Name: !Sub ${ProjectName}-${Environment}-backend-sg-id
+            Name: !Sub ${ProjectName}-${Environment}-mysql-host

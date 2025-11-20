@@ -14,6 +14,12 @@ Parameters:
     WebTag:
         Type: String
         Default: 0.0.1
+    DomainName:
+        Type: String
+        Default: usmp.identity.pe
+    BackendURL:
+        Type: String
+        Default: https://api.usmp.identity.pe
 
 Resources:
     WebSecurityGroup:
@@ -22,23 +28,60 @@ Resources:
             GroupDescription: Security group for Web Frontend
             VpcId:
                 Fn::ImportValue: !Sub ${ProjectName}-${Environment}-vpc-id
+            SecurityGroupEgress:
+                - IpProtocol: -1
+                  CidrIp: 0.0.0.0/0
+
+    WebALBSecurityGroup:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+            GroupDescription: Security group for Web ALB
+            VpcId:
+                Fn::ImportValue: !Sub ${ProjectName}-${Environment}-vpc-id
             SecurityGroupIngress:
+                - IpProtocol: tcp
+                  FromPort: 443
+                  ToPort: 443
+                  CidrIp: 0.0.0.0/0
                 - IpProtocol: tcp
                   FromPort: 80
                   ToPort: 80
                   CidrIp: 0.0.0.0/0
+            SecurityGroupEgress:
+                - IpProtocol: tcp
+                  FromPort: 80
+                  ToPort: 80
+                  CidrIp: 10.0.0.0/16
 
-    ALB:
+    WebSecurityGroupALBIngress:
+        Type: AWS::EC2::SecurityGroupIngress
+        Properties:
+            GroupId: !Ref WebSecurityGroup
+            IpProtocol: tcp
+            FromPort: 80
+            ToPort: 80
+            SourceSecurityGroupId: !Ref WebALBSecurityGroup
+
+    Certificate:
+        Type: AWS::CertificateManager::Certificate
+        Properties:
+            DomainName: !Ref DomainName
+            ValidationMethod: DNS
+            Tags:
+                - Key: Name
+                  Value: !Sub ${ProjectName}-${Environment}-web-certificate
+
+    WebALB:
         Type: AWS::ElasticLoadBalancingV2::LoadBalancer
         Properties:
-            Name: !Sub ${ProjectName}-${Environment}-alb
+            Name: !Sub ${ProjectName}-${Environment}-web-alb
             Scheme: internet-facing
             Type: application
             Subnets:
                 - Fn::ImportValue: !Sub ${ProjectName}-${Environment}-public-subnet-1
                 - Fn::ImportValue: !Sub ${ProjectName}-${Environment}-public-subnet-2
             SecurityGroups:
-                - !Ref WebSecurityGroup
+                - !Ref WebALBSecurityGroup
 
     WebTargetGroup:
         Type: AWS::ElasticLoadBalancingV2::TargetGroup
@@ -50,20 +93,39 @@ Resources:
                 Fn::ImportValue: !Sub ${ProjectName}-${Environment}-vpc-id
             TargetType: ip
             HealthCheckPath: /
+            HealthCheckProtocol: HTTP
+            HealthCheckPort: traffic-port
             HealthCheckIntervalSeconds: 30
             HealthCheckTimeoutSeconds: 5
             HealthyThresholdCount: 2
             UnhealthyThresholdCount: 2
+            Matcher:
+                HttpCode: 200
 
-    WebListener:
+    WebHTTPSListener:
         Type: AWS::ElasticLoadBalancingV2::Listener
         Properties:
-            LoadBalancerArn: !Ref ALB
-            Port: 80
-            Protocol: HTTP
+            LoadBalancerArn: !Ref WebALB
+            Port: 443
+            Protocol: HTTPS
+            Certificates:
+                - CertificateArn: !Ref Certificate
             DefaultActions:
                 - Type: forward
                   TargetGroupArn: !Ref WebTargetGroup
+
+    WebHTTPListener:
+        Type: AWS::ElasticLoadBalancingV2::Listener
+        Properties:
+            LoadBalancerArn: !Ref WebALB
+            Port: 80
+            Protocol: HTTP
+            DefaultActions:
+                - Type: redirect
+                  RedirectConfig:
+                      Protocol: HTTPS
+                      Port: 443
+                      StatusCode: HTTP_301
 
     ECSExecutionRole:
         Type: AWS::IAM::Role
@@ -76,6 +138,19 @@ Resources:
                       Action: sts:AssumeRole
             ManagedPolicyArns:
                 - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+            Policies:
+                - PolicyName: ECRAccess
+                  PolicyDocument:
+                      Statement:
+                          - Effect: Allow
+                            Action:
+                                - ecr:GetAuthorizationToken
+                                - ecr:BatchCheckLayerAvailability
+                                - ecr:GetDownloadUrlForLayer
+                                - ecr:BatchGetImage
+                                - logs:CreateLogStream
+                                - logs:PutLogEvents
+                            Resource: "*"
 
     ECSTaskRole:
         Type: AWS::IAM::Role
@@ -86,8 +161,14 @@ Resources:
                       Principal:
                           Service: ecs-tasks.amazonaws.com
                       Action: sts:AssumeRole
-            ManagedPolicyArns:
-                - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+            Policies:
+                - PolicyName: ECSAccess
+                  PolicyDocument:
+                      Statement:
+                          - Effect: Allow
+                            Action:
+                                - ecs:DescribeClusters
+                            Resource: "*"
 
     WebTaskDefinition:
         Type: AWS::ECS::TaskDefinition
@@ -108,9 +189,9 @@ Resources:
                       - ContainerPort: 80
                   Environment:
                       - Name: VITE_API_BASE_URL
-                        Value: http://http-app-evently:3001/api
+                        Value: !Sub ${BackendURL}/api
                       - Name: VITE_WS_HOST
-                        Value: http://http-app-evently:3001
+                        Value: !Ref BackendURL
                   LogConfiguration:
                       LogDriver: awslogs
                       Options:
@@ -120,19 +201,16 @@ Resources:
 
     WebService:
         Type: AWS::ECS::Service
-        DependsOn:
-            - BackendService
-            - ALB
         Properties:
             ServiceName: web
             Cluster:
                 Fn::ImportValue: !Sub ${ProjectName}-${Environment}-cluster-name
             TaskDefinition: !Ref WebTaskDefinition
-            DesiredCount: 1
+            DesiredCount: 2
             LaunchType: FARGATE
             NetworkConfiguration:
                 AwsvpcConfiguration:
-                    AssignPublicIp: ENABLED
+                    AssignPublicIp: DISABLED
                     Subnets:
                         - Fn::ImportValue: !Sub ${ProjectName}-${Environment}-private-subnet-1
                         - Fn::ImportValue: !Sub ${ProjectName}-${Environment}-private-subnet-2
@@ -142,6 +220,7 @@ Resources:
                 - ContainerName: web
                   ContainerPort: 80
                   TargetGroupArn: !Ref WebTargetGroup
+            HealthCheckGracePeriodSeconds: 60
 
     CloudWatchLogGroup:
         Type: AWS::Logs::LogGroup
@@ -149,16 +228,25 @@ Resources:
             LogGroupName: !Sub /ecs/${ProjectName}-${Environment}-frontend
             RetentionInDays: 30
 
-    BackendService:
-        Type: AWS::ECS::Service
+    WebDNSRecord:
+        Type: AWS::Route53::RecordSet
         Properties:
-            ServiceName: backend
-            Cluster:
-                Fn::ImportValue: !Sub ${ProjectName}-${Environment}-cluster-name
+            HostedZoneName: identity.pe.
+            Name: !Ref DomainName
+            Type: A
+            AliasTarget:
+                DNSName: !GetAtt WebALB.DNSName
+                HostedZoneId: !GetAtt WebALB.CanonicalHostedZoneID
 
 Outputs:
     WebURL:
         Description: Web Application URL
-        Value: !GetAtt ALB.DNSName
+        Value: !Sub https://${DomainName}
         Export:
             Name: !Sub ${ProjectName}-${Environment}-web-url
+
+    WebALBDNS:
+        Description: Web ALB DNS Name
+        Value: !GetAtt WebALB.DNSName
+        Export:
+            Name: !Sub ${ProjectName}-${Environment}-web-alb-dns

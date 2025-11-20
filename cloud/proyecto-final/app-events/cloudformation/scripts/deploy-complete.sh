@@ -7,6 +7,7 @@ ENVIRONMENT="dev"
 REGION="us-east-1"
 BACKEND_TAG="0.0.1"
 WEB_TAG="0.0.1"
+ARN_ACM_API="arn:aws:acm:us-east-1:905418316214:certificate/4765af44-542b-42d3-a75f-3199e57669d7"
 
 # Obtener el directorio base del proyecto
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -186,6 +187,7 @@ aws cloudformation deploy \
         ProjectName=${PROJECT_NAME} \
         Environment=${ENVIRONMENT} \
         BackendTag=${BACKEND_TAG} \
+        CertificateArn=${ARN_ACM_API} \
     --capabilities CAPABILITY_NAMED_IAM \
     --region ${REGION}
 wait_for_stack "${PROJECT_NAME}-backend-${ENVIRONMENT}"

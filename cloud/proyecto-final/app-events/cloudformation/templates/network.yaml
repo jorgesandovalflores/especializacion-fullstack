@@ -62,17 +62,6 @@ Resources:
                 - Key: Name
                   Value: !Sub ${ProjectName}-${Environment}-private-subnet-2
 
-    EIP:
-        Type: AWS::EC2::EIP
-        Properties:
-            Domain: vpc
-
-    NATGateway:
-        Type: AWS::EC2::NatGateway
-        Properties:
-            AllocationId: !GetAtt EIP.AllocationId
-            SubnetId: !Ref PublicSubnet1
-
     InternetGateway:
         Type: AWS::EC2::InternetGateway
         Properties:
@@ -85,6 +74,40 @@ Resources:
         Properties:
             VpcId: !Ref VPC
             InternetGatewayId: !Ref InternetGateway
+
+    EIP1:
+        Type: AWS::EC2::EIP
+        Properties:
+            Domain: vpc
+            Tags:
+                - Key: Name
+                  Value: !Sub ${ProjectName}-${Environment}-eip-1
+
+    EIP2:
+        Type: AWS::EC2::EIP
+        Properties:
+            Domain: vpc
+            Tags:
+                - Key: Name
+                  Value: !Sub ${ProjectName}-${Environment}-eip-2
+
+    NATGateway1:
+        Type: AWS::EC2::NatGateway
+        Properties:
+            AllocationId: !GetAtt EIP1.AllocationId
+            SubnetId: !Ref PublicSubnet1
+            Tags:
+                - Key: Name
+                  Value: !Sub ${ProjectName}-${Environment}-nat-1
+
+    NATGateway2:
+        Type: AWS::EC2::NatGateway
+        Properties:
+            AllocationId: !GetAtt EIP2.AllocationId
+            SubnetId: !Ref PublicSubnet2
+            Tags:
+                - Key: Name
+                  Value: !Sub ${ProjectName}-${Environment}-nat-2
 
     PublicRouteTable:
         Type: AWS::EC2::RouteTable
@@ -114,65 +137,104 @@ Resources:
             SubnetId: !Ref PublicSubnet2
             RouteTableId: !Ref PublicRouteTable
 
-    PrivateRouteTable:
+    PrivateRouteTable1:
         Type: AWS::EC2::RouteTable
         Properties:
             VpcId: !Ref VPC
             Tags:
                 - Key: Name
-                  Value: !Sub ${ProjectName}-${Environment}-private-rt
+                  Value: !Sub ${ProjectName}-${Environment}-private-rt-1
 
-    PrivateRoute:
+    PrivateRouteTable2:
+        Type: AWS::EC2::RouteTable
+        Properties:
+            VpcId: !Ref VPC
+            Tags:
+                - Key: Name
+                  Value: !Sub ${ProjectName}-${Environment}-private-rt-2
+
+    PrivateRoute1:
         Type: AWS::EC2::Route
         Properties:
-            RouteTableId: !Ref PrivateRouteTable
+            RouteTableId: !Ref PrivateRouteTable1
             DestinationCidrBlock: 0.0.0.0/0
-            NatGatewayId: !Ref NATGateway
+            NatGatewayId: !Ref NATGateway1
+
+    PrivateRoute2:
+        Type: AWS::EC2::Route
+        Properties:
+            RouteTableId: !Ref PrivateRouteTable2
+            DestinationCidrBlock: 0.0.0.0/0
+            NatGatewayId: !Ref NATGateway2
 
     PrivateSubnet1RouteTableAssociation:
         Type: AWS::EC2::SubnetRouteTableAssociation
         Properties:
             SubnetId: !Ref PrivateSubnet1
-            RouteTableId: !Ref PrivateRouteTable
+            RouteTableId: !Ref PrivateRouteTable1
 
     PrivateSubnet2RouteTableAssociation:
         Type: AWS::EC2::SubnetRouteTableAssociation
         Properties:
             SubnetId: !Ref PrivateSubnet2
-            RouteTableId: !Ref PrivateRouteTable
+            RouteTableId: !Ref PrivateRouteTable2
 
-    # Security Group para Route53 Resolver
-    ResolverSecurityGroup:
+    # Security Groups Base
+    BackendSecurityGroup:
         Type: AWS::EC2::SecurityGroup
         Properties:
-            GroupDescription: Security group for Route53 Resolver
+            GroupDescription: Security group for Backend services
             VpcId: !Ref VPC
-            SecurityGroupIngress:
-                - IpProtocol: udp
-                  FromPort: 53
-                  ToPort: 53
-                  CidrIp: 10.0.0.0/16
-                - IpProtocol: tcp
-                  FromPort: 53
-                  ToPort: 53
-                  CidrIp: 10.0.0.0/16
+            SecurityGroupEgress:
+                - IpProtocol: -1
+                  CidrIp: 0.0.0.0/0
 
-    # Route53 Resolver Endpoint simplificado
-    ResolverEndpoint:
-        Type: AWS::Route53Resolver::ResolverEndpoint
+    DatabaseSecurityGroup:
+        Type: AWS::EC2::SecurityGroup
         Properties:
-            Direction: INBOUND
-            IpAddresses:
-                - SubnetId: !Ref PrivateSubnet1
-                - SubnetId: !Ref PrivateSubnet2
-            SecurityGroupIds:
-                - !Ref ResolverSecurityGroup
-            Name: !Sub ${ProjectName}-${Environment}-resolver
+            GroupDescription: Security group for Databases
+            VpcId: !Ref VPC
+            SecurityGroupEgress:
+                - IpProtocol: -1
+                  CidrIp: 0.0.0.0/0
+
+    CacheSecurityGroup:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+            GroupDescription: Security group for Cache services
+            VpcId: !Ref VPC
+            SecurityGroupEgress:
+                - IpProtocol: -1
+                  CidrIp: 0.0.0.0/0
+
+    # Security Group Rules
+    DatabaseToBackendIngress:
+        Type: AWS::EC2::SecurityGroupIngress
+        Properties:
+            GroupId: !Ref DatabaseSecurityGroup
+            IpProtocol: tcp
+            FromPort: 3306
+            ToPort: 3306
+            SourceSecurityGroupId: !Ref BackendSecurityGroup
+
+    CacheToBackendIngress:
+        Type: AWS::EC2::SecurityGroupIngress
+        Properties:
+            GroupId: !Ref CacheSecurityGroup
+            IpProtocol: tcp
+            FromPort: 6379
+            ToPort: 6379
+            SourceSecurityGroupId: !Ref BackendSecurityGroup
 
     ECSCluster:
         Type: AWS::ECS::Cluster
         Properties:
             ClusterName: !Sub ${ProjectName}-${Environment}-cluster
+            CapacityProviders:
+                - FARGATE
+            DefaultCapacityProviderStrategy:
+                - CapacityProvider: FARGATE
+                  Weight: 1
             Tags:
                 - Key: Name
                   Value: !Sub ${ProjectName}-${Environment}-cluster
@@ -226,3 +288,21 @@ Outputs:
         Value: !GetAtt PrivateNamespace.Id
         Export:
             Name: !Sub ${ProjectName}-${Environment}-namespace-id
+
+    BackendSecurityGroupId:
+        Description: Backend Security Group ID
+        Value: !Ref BackendSecurityGroup
+        Export:
+            Name: !Sub ${ProjectName}-${Environment}-backend-sg-id
+
+    DatabaseSecurityGroupId:
+        Description: Database Security Group ID
+        Value: !Ref DatabaseSecurityGroup
+        Export:
+            Name: !Sub ${ProjectName}-${Environment}-database-sg-id
+
+    CacheSecurityGroupId:
+        Description: Cache Security Group ID
+        Value: !Ref CacheSecurityGroup
+        Export:
+            Name: !Sub ${ProjectName}-${Environment}-cache-sg-id

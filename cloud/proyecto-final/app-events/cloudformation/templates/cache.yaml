@@ -10,17 +10,30 @@ Parameters:
         Default: dev
 
 Resources:
-    RedisSecurityGroup:
-        Type: AWS::EC2::SecurityGroup
+    ECSExecutionRole:
+        Type: AWS::IAM::Role
         Properties:
-            GroupDescription: Security group for Redis
-            VpcId:
-                Fn::ImportValue: !Sub ${ProjectName}-${Environment}-vpc-id
-            SecurityGroupIngress:
-                - IpProtocol: tcp
-                  FromPort: 6379
-                  ToPort: 6379
-                  CidrIp: 10.0.0.0/16
+            AssumeRolePolicyDocument:
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service: ecs-tasks.amazonaws.com
+                      Action: sts:AssumeRole
+            ManagedPolicyArns:
+                - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+            Policies:
+                - PolicyName: ECRAccess
+                  PolicyDocument:
+                      Statement:
+                          - Effect: Allow
+                            Action:
+                                - ecr:GetAuthorizationToken
+                                - ecr:BatchCheckLayerAvailability
+                                - ecr:GetDownloadUrlForLayer
+                                - ecr:BatchGetImage
+                                - logs:CreateLogStream
+                                - logs:PutLogEvents
+                            Resource: "*"
 
     RedisTaskDefinition:
         Type: AWS::ECS::TaskDefinition
@@ -34,7 +47,7 @@ Resources:
             ExecutionRoleArn: !Ref ECSExecutionRole
             ContainerDefinitions:
                 - Name: redis
-                  Image: public.ecr.aws/docker/library/redis:8.2-alpine
+                  Image: public.ecr.aws/docker/library/redis:7-alpine
                   Essential: true
                   PortMappings:
                       - ContainerPort: 6379
@@ -49,10 +62,10 @@ Resources:
                           awslogs-region: !Ref AWS::Region
                           awslogs-stream-prefix: redis
 
-    ServiceDiscovery:
+    RedisServiceDiscovery:
         Type: AWS::ServiceDiscovery::Service
         Properties:
-            Name: redis-app-evently
+            Name: redis
             DnsConfig:
                 NamespaceId:
                     Fn::ImportValue: !Sub ${ProjectName}-${Environment}-namespace-id
@@ -64,7 +77,6 @@ Resources:
 
     RedisService:
         Type: AWS::ECS::Service
-        DependsOn: RedisTaskDefinition
         Properties:
             ServiceName: redis
             Cluster:
@@ -79,21 +91,9 @@ Resources:
                         - Fn::ImportValue: !Sub ${ProjectName}-${Environment}-private-subnet-1
                         - Fn::ImportValue: !Sub ${ProjectName}-${Environment}-private-subnet-2
                     SecurityGroups:
-                        - !Ref RedisSecurityGroup
+                        - Fn::ImportValue: !Sub ${ProjectName}-${Environment}-cache-sg-id
             ServiceRegistries:
-                - RegistryArn: !GetAtt ServiceDiscovery.Arn
-
-    ECSExecutionRole:
-        Type: AWS::IAM::Role
-        Properties:
-            AssumeRolePolicyDocument:
-                Statement:
-                    - Effect: Allow
-                      Principal:
-                          Service: ecs-tasks.amazonaws.com
-                      Action: sts:AssumeRole
-            ManagedPolicyArns:
-                - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+                - RegistryArn: !GetAtt RedisServiceDiscovery.Arn
 
     CloudWatchLogGroup:
         Type: AWS::Logs::LogGroup
@@ -102,14 +102,8 @@ Resources:
             RetentionInDays: 30
 
 Outputs:
-    RedisServiceName:
-        Description: Redis Service Discovery Name
-        Value: !GetAtt ServiceDiscovery.Name
+    RedisHost:
+        Description: Redis Hostname
+        Value: !Sub redis.${ProjectName}.local
         Export:
-            Name: !Sub ${ProjectName}-${Environment}-redis-service-name
-
-    RedisSecurityGroupId:
-        Description: Redis Security Group ID
-        Value: !Ref RedisSecurityGroup
-        Export:
-            Name: !Sub ${ProjectName}-${Environment}-redis-sg-id
+            Name: !Sub ${ProjectName}-${Environment}-redis-host
