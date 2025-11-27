@@ -5,6 +5,9 @@ import {
     IAddressRemote,
     AddressSearchResult,
     SearchOptions,
+    ModelGoogleGeocode,
+    GoogleGeocodeResult,
+    GoogleGeocodeResultAddress,
 } from "../interfaces/address.interface";
 
 interface NominatimResult {
@@ -19,7 +22,7 @@ interface NominatimResult {
 
 @Injectable()
 export class NominatimRemote implements IAddressRemote {
-    private readonly baseUrl = "https://gisgraphy.alert.pe/search";
+    private readonly baseUrl = process.env.URL_SERVER_NOMINATIM;
 
     constructor(private readonly httpService: HttpService) {}
 
@@ -46,10 +49,15 @@ export class NominatimRemote implements IAddressRemote {
             }
 
             const response = await firstValueFrom(
-                this.httpService.get<NominatimResult[]>(this.baseUrl, {
-                    params,
-                    headers: { "User-Agent": "NestJS-Address-Searcher/1.0" },
-                }),
+                this.httpService.get<NominatimResult[]>(
+                    `${this.baseUrl}/search`,
+                    {
+                        params,
+                        headers: {
+                            "User-Agent": "NestJS-Address-Searcher/1.0",
+                        },
+                    },
+                ),
             );
 
             return response.data.map(
@@ -69,6 +77,72 @@ export class NominatimRemote implements IAddressRemote {
         } catch (error) {
             console.error("Nominatim search error:", error);
             throw new Error(`Nominatim search failed: ${error.message}`);
+        }
+    }
+
+    async getGeocode(latlng: string): Promise<ModelGoogleGeocode> {
+        try {
+            const [lat, lon] = latlng.split(",").map(Number);
+            const response = await firstValueFrom(
+                await this.httpService.get(`${this.baseUrl}/reverse`, {
+                    params: {
+                        format: "json",
+                        limit: 1,
+                        addressdetails: 1,
+                        zoom: 18,
+                        lat,
+                        lon,
+                    },
+                }),
+            );
+
+            const nominatim = response.data;
+            const address_components: GoogleGeocodeResultAddress[] = [];
+            const addressMap: { [key: string]: string[] } = {
+                road: ["route"],
+                suburb: ["sublocality"],
+                city: ["locality"],
+                region: ["administrative_area_level_2"],
+                state: ["administrative_area_level_1"],
+                postcode: ["postal_code"],
+                country: ["country"],
+            };
+
+            for (const [key, types] of Object.entries(addressMap)) {
+                if (nominatim.address[key]) {
+                    address_components.push({
+                        long_name: nominatim.address[key],
+                        short_name: "",
+                        types,
+                    });
+                }
+            }
+
+            const result: GoogleGeocodeResult = {
+                place_id: String(nominatim.place_id),
+                formatted_address: nominatim.display_name,
+                address_components,
+            };
+
+            const model: ModelGoogleGeocode = {
+                status: "OK",
+                results: [result],
+                plus_code: {
+                    compound_code: "",
+                    global_code: "",
+                },
+            };
+            return model;
+        } catch (error) {
+            console.error("Nominatim geocode error:", error);
+            return {
+                status: "",
+                results: [],
+                plus_code: {
+                    compound_code: "",
+                    global_code: "",
+                },
+            };
         }
     }
 

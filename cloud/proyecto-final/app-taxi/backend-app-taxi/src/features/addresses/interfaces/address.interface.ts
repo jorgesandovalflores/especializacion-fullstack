@@ -36,3 +36,26 @@ export interface IAddressRemote {
         placeId: string,
     ): Promise<{ coordinates: GeoCoordinates; fullAddress: string }>;
 }
+
+export type ModelGoogleGeocode = {
+    plus_code: GoogleGeocodePlusCode;
+    status: string;
+    results: GoogleGeocodeResult[];
+};
+
+export type GoogleGeocodePlusCode = {
+    compound_code: string;
+    global_code: string;
+};
+
+export type GoogleGeocodeResult = {
+    place_id: string;
+    formatted_address: string;
+    address_components: GoogleGeocodeResultAddress[];
+};
+
+export type GoogleGeocodeResultAddress = {
+    long_name: string;
+    short_name: string;
+    types: string[];
+};

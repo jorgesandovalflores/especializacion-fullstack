@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "11986389930",
+    "project_id": "example-andes",
+    "storage_bucket": "example-andes.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:11986389930:android:eda3c7df4a02e5f897b9d3",
+        "android_client_info": {
+          "package_name": "com.example.android_passenger"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAIhz7-3dZ9vIxBTdePROzkLlIhu7XJHE0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

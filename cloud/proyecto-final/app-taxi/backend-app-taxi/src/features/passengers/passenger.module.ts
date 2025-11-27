@@ -12,6 +12,8 @@ import { AuthController } from "./controllers/auth.controller";
 import { AuthService } from "./services/auth.service";
 import { PassengerOtpDao } from "./dao/passenger-otp.dao";
 import { PassengerOtpEntity } from "./entities/passenger-otp.entity";
+import { HttpModule } from "@nestjs/axios";
+import { FcmRemote } from "src/commons/remote/fcm.remote";
 
 /* -------------------------------------------------------
    PassengerModule
@@ -25,6 +27,7 @@ import { PassengerOtpEntity } from "./entities/passenger-otp.entity";
         TypeOrmModule.forFeature([PassengerEntity, PassengerOtpEntity]),
         ConfigModule,
         JwtModule.register({}),
+        HttpModule,
     ],
     controllers: [PassengerController, AuthController],
     providers: [
@@ -33,6 +36,7 @@ import { PassengerOtpEntity } from "./entities/passenger-otp.entity";
         PassengerDao,
         PassengerOtpDao,
         CacheService,
+        FcmRemote,
     ],
     exports: [PassengerService, AuthService, PassengerDao, PassengerOtpDao],
 })

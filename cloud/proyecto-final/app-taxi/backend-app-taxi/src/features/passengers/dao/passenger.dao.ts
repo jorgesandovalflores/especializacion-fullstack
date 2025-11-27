@@ -52,6 +52,20 @@ export class PassengerDao {
         return (result.affected ?? 0) > 0;
     }
 
+    async tokenFcmAtById(id: string, tokenFcm: string): Promise<boolean> {
+        const result = await this.repo
+            .createQueryBuilder()
+            .update(PassengerEntity)
+            .set({
+                lastLoginAt: () => "NOW()",
+                tokenFcm,
+            })
+            .where("id = :id", { id })
+            .execute();
+
+        return (result.affected ?? 0) > 0;
+    }
+
     async updateBasicInfoById(
         id: string,
         givenName?: string | null,

@@ -52,6 +52,9 @@ export class PassengerEntity {
     @Column("varchar", { name: "photo_url", length: 255, nullable: true })
     photoUrl?: string | null;
 
+    @Column("varchar", { name: "token_fcm", length: 255, nullable: true })
+    tokenFcm?: string | null;
+
     /* ---------------------------------------
        Estado de negocio del pasajero
        --------------------------------------- */

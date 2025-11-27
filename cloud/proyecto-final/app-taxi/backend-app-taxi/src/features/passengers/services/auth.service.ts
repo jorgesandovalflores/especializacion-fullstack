@@ -14,12 +14,14 @@ import { toPassengerDto } from "../mapper/passenger.mapper";
 
 import BrevoNetwork from "../remote/BrevoNetwork";
 import { PassengerRefreshTokenRequestDto } from "../dto/passenger-refresh-token-request.dto";
+import { FcmRemote } from "src/commons/remote/fcm.remote";
 
 @Injectable()
 export class AuthService {
     constructor(
         private readonly passengerDao: PassengerDao,
         private readonly passengerOtpDao: PassengerOtpDao,
+        private readonly fcmRemote: FcmRemote,
         private readonly i18n: I18nService,
         private readonly cache: CacheService,
         private readonly config: ConfigService,
@@ -147,8 +149,17 @@ export class AuthService {
             );
         }
 
-        // 4) Tocar lastLoginAt
+        // 4) Tocar lastLoginAt and tokenFcm
         await this.passengerDao.touchLastLoginAtById(passenger.id);
+        await this.passengerDao.tokenFcmAtById(
+            passenger.id,
+            request.tokenFcm || "",
+        );
+        await this.fcmRemote.sendPushByToken(
+            request.tokenFcm || "",
+            "Bienvenido a App Taxi",
+            "Has iniciado sesión correctamente.",
+        );
 
         // 5) Emitir JWTs
         const accessTtlSec = Number(this.config.get("JWT_ACCESS_TTL_SEC"));

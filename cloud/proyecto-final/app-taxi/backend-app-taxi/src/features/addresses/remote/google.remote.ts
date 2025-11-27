@@ -6,6 +6,7 @@ import {
     AddressSearchResult,
     SearchOptions,
     GeoCoordinates,
+    ModelGoogleGeocode,
 } from "../interfaces/address.interface";
 
 interface GoogleAutocompleteResult {
@@ -24,6 +25,8 @@ export class GoogleRemote implements IAddressRemote {
         "https://maps.googleapis.com/maps/api/place/autocomplete/json";
     private readonly detailsUrl =
         "https://maps.googleapis.com/maps/api/place/details/json";
+    private readonly geocodeUrl =
+        "https://maps.googleapis.com/maps/api/geocode/json";
     private readonly apiKey: string;
 
     constructor(private readonly httpService: HttpService) {
@@ -39,6 +42,8 @@ export class GoogleRemote implements IAddressRemote {
         }
 
         try {
+            console.log("step 01");
+
             const params: Record<string, string> = {
                 input: this.buildQuery(query, options.city),
                 key: this.apiKey,
@@ -61,6 +66,7 @@ export class GoogleRemote implements IAddressRemote {
                 }>(this.autocompleteUrl, { params }),
             );
 
+            console.log(response.request);
             return response.data.predictions.map(
                 (prediction): AddressSearchResult => ({
                     source: "google",
@@ -120,7 +126,42 @@ export class GoogleRemote implements IAddressRemote {
         }
     }
 
+    async getGeocode(latlng: string): Promise<ModelGoogleGeocode> {
+        try {
+            const response = await firstValueFrom(
+                this.httpService.get(
+                    `${this.geocodeUrl}?key=${String(
+                        process.env.APIKEY_GOOGLE_API,
+                    )}&latlng=${latlng}`,
+                ),
+            );
+
+            // Filtrar resultados que no contengan address_components con tipo "plus_code"
+            const filteredResults = response.data.results.filter(
+                (r: any) =>
+                    !r.address_components.some((ac: any) =>
+                        ac.types.includes("plus_code"),
+                    ),
+            );
+
+            return {
+                ...response.data,
+                results: filteredResults,
+            };
+        } catch (error) {
+            console.error("Google geocode error:", error);
+            return {
+                plus_code: {
+                    compound_code: "",
+                    global_code: "",
+                },
+                status: "",
+                results: [],
+            };
+        }
+    }
+
     private buildQuery(query: string, city?: string): string {
-        return city ? `${query} ${city}` : query;
+        return city ? `${query}` : query;
     }
 }

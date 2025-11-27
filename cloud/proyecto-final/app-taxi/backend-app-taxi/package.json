@@ -18,6 +18,7 @@
         "migration:revert": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:revert -d src/core/database/typeorm.migration.ts"
     },
     "dependencies": {
+        "@googlemaps/polyline-codec": "^1.0.28",
         "@nestjs/axios": "^4.0.1",
         "@nestjs/common": "^11.1.0",
         "@nestjs/config": "^4.0.2",
@@ -25,9 +26,11 @@
         "@nestjs/jwt": "^11.0.0",
         "@nestjs/mapped-types": "^2.1.0",
         "@nestjs/platform-express": "^11.1.0",
+        "@nestjs/platform-socket.io": "^11.1.9",
         "@nestjs/serve-static": "^5.0.3",
         "@nestjs/swagger": "^11.1.6",
         "@nestjs/typeorm": "^11.0.0",
+        "@nestjs/websockets": "^11.1.9",
         "@types/dotenv": "^8.2.3",
         "@types/redis": "^4.0.11",
         "argon2": "^0.43.0",
@@ -36,6 +39,7 @@
         "class-validator": "^0.14.2",
         "colors": "^1.4.0",
         "dotenv": "^17.2.0",
+        "google-auth-library": "^10.5.0",
         "i18n": "^0.15.1",
         "ioredis": "^5.6.1",
         "lodash": "^4.17.21",
@@ -46,6 +50,7 @@
         "redis": "^5.6.0",
         "reflect-metadata": "^0.2.2",
         "rxjs": "^7.8.2",
+        "socket.io": "^4.8.1",
         "swagger-ui-express": "^5.0.1",
         "typeorm": "^0.3.22"
     },
@@ -61,6 +66,7 @@
         "@types/jest": "^29.5.14",
         "@types/node": "^22.15.3",
         "@types/pino": "^7.0.5",
+        "@types/socket.io": "^3.0.2",
         "@types/supertest": "^6.0.3",
         "eslint": "^9.26.0",
         "eslint-config-prettier": "^10.1.2",
