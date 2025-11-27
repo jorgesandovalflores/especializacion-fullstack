@@ -3,10 +3,6 @@ name: Deploy app-evently to EC2
 on:
     push:
         branches: ["main"]
-        paths:
-            - "app-events/backend-evently/**"
-            - "app-events/web-evently/**"
-            - ".github/workflows/deploy-evently.yml"
 
 jobs:
     deploy:
@@ -30,8 +26,8 @@ jobs:
                       echo "2) Ir a la carpeta de infra"
                       cd infra-evently
 
-                      echo "3) Calcular nuevo TAG (usamos el run_number del workflow)"
-                      TAG=${{ github.run_number }}
+                      echo "3) Calcular nuevo TAG (usamos el SHA del commit)"
+                      TAG=${{ github.sha }}
                       echo "Nuevo TAG: $TAG"
 
                       echo "4) Actualizar BACKEND_TAG y WEB_TAG en .env"
