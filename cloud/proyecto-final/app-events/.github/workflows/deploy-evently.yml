@@ -1,0 +1,54 @@
+name: Deploy app-evently to EC2
+
+on:
+    push:
+        branches: ["main"]
+        paths:
+            - "app-events/backend-evently/**"
+            - "app-events/web-evently/**"
+            - ".github/workflows/deploy-evently.yml"
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Ejecutar deploy en EC2
+              uses: appleboy/ssh-action@v1.0.0
+              with:
+                  host: ${{ secrets.EC2_HOST }}
+                  username: ${{ secrets.EC2_USER }}
+                  key: ${{ secrets.EC2_SSH_KEY }}
+                  script: |
+                      set -e
+
+                      echo "1) Ir al repo y actualizar código"
+                      cd app-evently
+                      git fetch origin main
+                      git reset --hard origin/main
+
+                      echo "2) Ir a la carpeta de infra"
+                      cd infra-evently
+
+                      echo "3) Calcular nuevo TAG (usamos el run_number del workflow)"
+                      TAG=${{ github.run_number }}
+                      echo "Nuevo TAG: $TAG"
+
+                      echo "4) Actualizar BACKEND_TAG y WEB_TAG en .env"
+                      # Asume líneas del tipo BACKEND_TAG="0.0.1"
+                      sed -i 's/^BACKEND_TAG=.*/BACKEND_TAG="'$TAG'"/' .env
+                      sed -i 's/^WEB_TAG=.*/WEB_TAG="'$TAG'"/' .env
+
+                      echo "Contenido actual de las líneas de TAG:"
+                      grep -E 'BACKEND_TAG|WEB_TAG' .env || true
+
+                      echo "5) Reconstruir y levantar backend"
+                      docker compose -f docker-compose.http.yml -p app-evently up -d --build
+
+                      echo "6) Reconstruir y levantar frontend"
+                      docker compose -f docker-compose.web.yml -p app-evently up -d --build
+
+                      echo "7) Limpiar imágenes huérfanas (opcional)"
+                      docker image prune -f || true
+
+                      echo "Deploy completado."
