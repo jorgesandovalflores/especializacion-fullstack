@@ -7,19 +7,16 @@
 Al finalizar esta sesión, el estudiante será capaz de:
 
 1. Explicar qué implica diseñar arquitecturas resilientes y tolerantes a fallos en AWS.
-2. Implementar estrategias de alta disponibilidad en componentes críticos (compute, base de datos, red).
-3. Diseñar despliegues Multi-AZ y Multi-Region, entendiendo cuándo aplicarlos.
-4. Elegir e implementar estrategias de Disaster Recovery (DR) según el RTO y RPO requeridos.
-5. Ejecutar pruebas de resiliencia y validación de disponibilidad de forma controlada.
+2. Diseñar despliegues Multi-AZ y Multi-Region, entendiendo cuándo aplicarlos.
+3. Elegir e implementar estrategias de Disaster Recovery (DR) según el RTO y RPO requeridos.
 
 ---
 
 ## Contenido
 
 1. Buenas prácticas para arquitecturas resilientes
-2. Despliegue en múltiples regiones
-3. Estrategias de Disaster Recovery
-4. Pruebas y validación de alta disponibilidad
+2. Estrategias de Disaster Recovery
+3. Pruebas y validación de alta disponibilidad
 
 ---
 
