@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref } from "vue";
 
 const count = ref(0);
 
@@ -14,7 +14,7 @@ const decrement = () => {
 
 <template>
     <div class="container">
-        <h2 style="color: #1a1a1a;">Contador: {{ count }}</h2>
+        <h2 style="color: #1a1a1a">Contador: {{ count }}</h2>
         <div class="buttons">
             <button @click="increment">+</button>
             <button @click="decrement">-</button>

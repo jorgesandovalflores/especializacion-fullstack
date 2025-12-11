@@ -2,8 +2,8 @@
 import { ref } from "vue";
 
 const cards = ref([
-  { id: 1, title: "Opción 1", description: "Descripción de la Opción 1" },
-  { id: 2, title: "Opción 2", description: "Descripción de la Opción 2" },
+    { id: 1, title: "Opción 1", description: "Descripción de la Opción 1" },
+    { id: 2, title: "Opción 2", description: "Descripción de la Opción 2" },
 ]);
 
 const selectedCard = ref<number | null>(null);
@@ -17,13 +17,16 @@ const selectedCard = ref<number | null>(null);
                 :key="card.id"
                 class="card"
                 :class="{ selected: selectedCard === card.id }"
-                @click="selectedCard = card.id">
+                @click="selectedCard = card.id"
+            >
                 <h3>{{ card.title }}</h3>
             </div>
         </div>
 
         <div v-if="selectedCard !== null" class="description">
-            <p>{{ cards.find((c) => c.id === selectedCard)?.description }}</p>
+            <p style="color: black">
+                {{ cards.find((c: any) => c.id === selectedCard)?.description }}
+            </p>
         </div>
     </div>
 </template>
@@ -51,7 +54,7 @@ const selectedCard = ref<number | null>(null);
 }
 
 .card:hover {
-  background: #f0f0f0;
+    background: #f0f0f0;
 }
 
 .selected {

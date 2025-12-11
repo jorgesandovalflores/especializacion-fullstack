@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref } from "vue";
 
 interface Task {
-  id: number;
-  text: string;
+    id: number;
+    text: string;
 }
 
 const tasks = ref<Task[]>([]);
-const newTask = ref<string>('');
+const newTask = ref<string>("");
 
 const addTask = () => {
-  if (newTask.value.trim() === '') return;
-  tasks.value.push({ id: Date.now(), text: newTask.value.trim() });
-  newTask.value = '';
+    if (newTask.value.trim() === "") return;
+    tasks.value.push({ id: Date.now(), text: newTask.value.trim() });
+    newTask.value = "";
 };
 
 const removeTask = (id: number) => {
-  tasks.value = tasks.value.filter(task => task.id !== id);
+    tasks.value = tasks.value.filter((task) => task.id !== id);
 };
 </script>
 

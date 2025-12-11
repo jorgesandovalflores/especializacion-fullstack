@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import Contador from './components/Contador.vue'
-//import Interpolacion from './components/Interpolacion.vue'
-//import ClasesDinamicas from './components/ClasesDinamicas.vue'
-//import ComponentColor from './components/ComponentColor.vue'
-//import ComponentCondition from './components/ComponentCondition.vue'
+//import Contador from "./components/Contador.vue";
+//import Interpolacion from "./components/Interpolacion.vue";
+//import ClasesDinamicas from "./components/ClasesDinamicas.vue";
+//import ComponentColor from "./components/ComponentColor.vue";
+import ComponentCondition from "./components/ComponentCondition.vue";
 </script>
 
 <template>
-    <Contador />
+    <!--<Contador />-->
     <!--<Interpolacion />-->
     <!--<ClasesDinamicas />-->
     <!--<ComponentColor />-->
-    <!--<ComponentCondition />-->
+    <ComponentCondition />
 </template>
 
 <style scoped>

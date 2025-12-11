@@ -1,21 +1,13 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, onUpdated } from 'vue';
+import { onMounted, onUnmounted, onUpdated } from "vue";
 
-onMounted(() => {
+onMounted(() => {});
 
-})
+onUpdated(() => {});
 
-onUpdated(() => {
-
-})
-
-onUnmounted(() => {
-
-})
+onUnmounted(() => {});
 </script>
 
 <template>
-    <div>
-        
-    </div>
+    <div></div>
 </template>

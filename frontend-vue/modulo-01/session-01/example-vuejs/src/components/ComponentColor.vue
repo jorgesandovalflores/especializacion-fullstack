@@ -6,7 +6,7 @@ const colors = ref([
     { name: "Rojo", value: "#e74c3c" },
     { name: "Verde", value: "#2ecc71" },
     { name: "Amarillo", value: "#f1c40f" },
-    { name: "Morado", value: "#9b59b6" }
+    { name: "Morado", value: "#9b59b6" },
 ]);
 
 const selectedColor = ref(colors.value[0].value);
@@ -16,12 +16,19 @@ const selectedColor = ref(colors.value[0].value);
     <div class="container">
         <label for="colorSelect">Selecciona un color:</label>
         <select id="colorSelect" v-model="selectedColor">
-            <option v-for="color in colors" :key="color.value" :value="color.value">
+            <option
+                v-for="color in colors"
+                :key="color.value"
+                :value="color.value"
+            >
                 {{ color.name }}
             </option>
         </select>
 
-        <button :style="{ backgroundColor: selectedColor }" class="color-button">
+        <button
+            :style="{ backgroundColor: selectedColor }"
+            class="color-button"
+        >
             ¡Cámbiame de color!
         </button>
     </div>

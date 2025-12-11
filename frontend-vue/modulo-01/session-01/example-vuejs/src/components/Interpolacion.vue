@@ -5,5 +5,5 @@ const message = ref("Hola, Vue con TypeScript!");
 </script>
 
 <template>
-    <h1>{{ message }}</h1>
+    <h1 style="color: blue">{{ message }}</h1>
 </template>
