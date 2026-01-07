@@ -75,6 +75,8 @@ const user = reactive({
 - Usar `ref` para valores simples
 - Usar `reactive` para estructuras complejas
 
+![Diagrama](./_img/1.svg)
+
 ---
 
 ## 2. Directivas avanzadas y renderizado condicional
