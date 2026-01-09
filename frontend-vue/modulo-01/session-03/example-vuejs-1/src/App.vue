@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import ParentComponentModify from './components/ParentComponentModify.vue'
+import ParentComponentDynamic from "./components/ParentComponentDynamic.vue";
 </script>
 
 <template>
-  <ParentComponentModify />
+    <ParentComponentDynamic />
 </template>
 
 <style scoped>
 .logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+    height: 6em;
+    padding: 1.5em;
+    will-change: filter;
+    transition: filter 300ms;
 }
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+    filter: drop-shadow(0 0 2em #646cffaa);
 }
 .logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+    filter: drop-shadow(0 0 2em #42b883aa);
 }
 </style>
