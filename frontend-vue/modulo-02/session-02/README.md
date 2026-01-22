@@ -1,7 +1,6 @@
+# Clase 02 – Configuración y uso de Vue Router
 
-# 🎓 Clase 02 – Configuración y uso de Vue Router
-
-## 🎯 Objetivo de la clase
+## Objetivo de la clase
 
 Al finalizar la clase, los estudiantes serán capaces de:
 
@@ -13,7 +12,7 @@ Al finalizar la clase, los estudiantes serán capaces de:
 
 ---
 
-## 📚 Contenido de la clase
+## Contenido de la clase
 
 1. ¿Qué es Vue Router?
 2. Instalación y configuración básica
@@ -27,11 +26,12 @@ Al finalizar la clase, los estudiantes serán capaces de:
 
 ---
 
-## 1️⃣ ¿Qué es Vue Router?
+## 1️¿Qué es Vue Router?
 
 > Vue Router es la herramienta oficial para el manejo de rutas en aplicaciones Vue. Permite que una SPA (Single Page Application) navegue entre múltiples vistas sin recargar la página.
 
 ### Conceptos clave:
+
 - **SPA (Single Page Application):** Una sola página HTML que se actualiza dinámicamente.
 - **Ruta:** Asociación entre una URL y un componente.
 - **`<router-view>`:** Contenedor dinámico que cambia según la ruta.
@@ -39,7 +39,7 @@ Al finalizar la clase, los estudiantes serán capaces de:
 
 ---
 
-## 2️⃣ Instalación
+## 2️Instalación
 
 ```bash
 npm install vue-router@4
@@ -47,39 +47,37 @@ npm install vue-router@4
 
 ---
 
-## 3️⃣ Configuración manual de Vue Router
+## 3️Configuración manual de Vue Router
 
 ### `src/router/index.ts`
 
 ```ts
-import { createRouter, createWebHistory } from 'vue-router'
-import Home from '@/views/Home.vue'
+import { createRouter, createWebHistory } from "vue-router";
+import Home from "@/views/Home.vue";
 
-const routes = [
-    { path: '/', name: 'Home', component: Home },
-]
+const routes = [{ path: "/", name: "Home", component: Home }];
 
 const router = createRouter({
     history: createWebHistory(),
     routes,
-})
+});
 
-export default router
+export default router;
 ```
 
 ### `src/main.ts`
 
 ```ts
-import { createApp } from 'vue'
-import App from './App.vue'
-import router from './router'
+import { createApp } from "vue";
+import App from "./App.vue";
+import router from "./router";
 
-createApp(App).use(router).mount('#app')
+createApp(App).use(router).mount("#app");
 ```
 
 ---
 
-## 4️⃣ Crear vistas básicas
+## 4️Crear vistas básicas
 
 ```bash
 mkdir src/views
@@ -110,22 +108,22 @@ touch src/views/Home.vue src/views/About.vue src/views/Dashboard.vue
 
 ---
 
-## 5️⃣ Declarar múltiples rutas
+## 5️Declarar múltiples rutas
 
 ```ts
-import About from '@/views/About.vue'
-import Dashboard from '@/views/Dashboard.vue'
+import About from "@/views/About.vue";
+import Dashboard from "@/views/Dashboard.vue";
 
 const routes = [
-    { path: '/', name: 'Home', component: Home },
-    { path: '/about', name: 'About', component: About },
-    { path: '/dashboard', name: 'Dashboard', component: Dashboard },
-]
+    { path: "/", name: "Home", component: Home },
+    { path: "/about", name: "About", component: About },
+    { path: "/dashboard", name: "Dashboard", component: Dashboard },
+];
 ```
 
 ---
 
-## 6️⃣ Navegación entre rutas
+## 6️Navegación entre rutas
 
 ### Declarativa:
 
@@ -156,57 +154,57 @@ const routes = [
 ### Programática:
 
 ```ts
-this.$router.push('/dashboard')
+this.$router.push("/dashboard");
 ```
 
 ---
 
-## 7️⃣ Rutas protegidas
+## 7️Rutas protegidas
 
 ```ts
-const isAuthenticated = false
+const isAuthenticated = false;
 
 const routes = [
-    { path: '/', name: 'Home', component: Home },
+    { path: "/", name: "Home", component: Home },
     {
-        path: '/dashboard',
-        name: 'Dashboard',
+        path: "/dashboard",
+        name: "Dashboard",
         component: Dashboard,
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true },
     },
-]
+];
 
 router.beforeEach((to, from, next) => {
     if (to.meta.requiresAuth && !isAuthenticated) {
-        next('/')
+        next("/");
     } else {
-        next()
+        next();
     }
-})
+});
 ```
 
 ---
 
-## 8️⃣ Lazy Loading
+## 8️Lazy Loading
 
 ```ts
 const routes = [
     {
-        path: '/',
-        name: 'Home',
-        component: () => import('@/views/Home.vue'),
+        path: "/",
+        name: "Home",
+        component: () => import("@/views/Home.vue"),
     },
     {
-        path: '/about',
-        name: 'About',
-        component: () => import('@/views/About.vue'),
-    }
-]
+        path: "/about",
+        name: "About",
+        component: () => import("@/views/About.vue"),
+    },
+];
 ```
 
 ---
 
-## 9️⃣ Bonus: `vue-router/auto`
+## 9️Bonus: `vue-router/auto`
 
 ```bash
 npm install vue-router
@@ -216,14 +214,11 @@ npm install -D unplugin-vue-router
 ### `vite.config.ts`
 
 ```ts
-import VueRouter from 'unplugin-vue-router/vite'
+import VueRouter from "unplugin-vue-router/vite";
 
 export default defineConfig({
-    plugins: [
-        vue(),
-        VueRouter({ dts: true })
-    ],
-})
+    plugins: [vue(), VueRouter({ dts: true })],
+});
 ```
 
 ### Estructura esperada:
@@ -239,32 +234,32 @@ src/
 ### `main.ts`
 
 ```ts
-import { createApp } from 'vue'
-import App from './App.vue'
-import { createRouter, setupRouter } from 'vue-router/auto'
+import { createApp } from "vue";
+import App from "./App.vue";
+import { createRouter, setupRouter } from "vue-router/auto";
 
-const router = createRouter()
-const app = createApp(App)
+const router = createRouter();
+const app = createApp(App);
 
-setupRouter(app)
-app.mount('#app')
+setupRouter(app);
+app.mount("#app");
 ```
 
 ---
 
-## 🔍 Comparación
+## Comparación
 
-| Característica            | Vue Router Manual        | `vue-router/auto`         |
-|--------------------------|--------------------------|---------------------------|
-| Declaración de rutas     | Manual                   | Automática                |
-| Tipado automático        | No                       | Sí                        |
-| Escalabilidad            | Complejo si hay muchas   | Muy escalable             |
-| Configuración inicial    | Simple                   | Requiere configuración    |
-| Ideal para...            | Proyectos pequeños       | Proyectos modernos        |
+| Característica        | Vue Router Manual      | `vue-router/auto`      |
+| --------------------- | ---------------------- | ---------------------- |
+| Declaración de rutas  | Manual                 | Automática             |
+| Tipado automático     | No                     | Sí                     |
+| Escalabilidad         | Complejo si hay muchas | Muy escalable          |
+| Configuración inicial | Simple                 | Requiere configuración |
+| Ideal para...         | Proyectos pequeños     | Proyectos modernos     |
 
 ---
 
-## ❓ Preguntas y respuestas
+## Preguntas y respuestas
 
 - **¿Qué pasa si accedo a una ruta que no existe?**  
   Puedes definir una ruta `path: '/:pathMatch(.*)*'` para redirigir a una vista 404.
