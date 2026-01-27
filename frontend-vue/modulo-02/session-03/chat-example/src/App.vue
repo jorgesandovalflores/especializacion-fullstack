@@ -1,5 +1,5 @@
 <template>
-  <router-view />
+    <router-view />
 </template>
 
 <script setup lang="ts">
@@ -8,8 +8,10 @@
 
 <style>
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  background-color: #f5f5f5;
+    margin: 0;
+    font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+        sans-serif;
+    background-color: #f5f5f5;
 }
 </style>
