@@ -1,0 +1,27 @@
+{
+    "name": "frontend-tailwind",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vue-tsc -b && vite build",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "@tailwindcss/vite": "^4.1.18",
+        "axios": "^1.13.5",
+        "pinia": "^3.0.4",
+        "tailwindcss": "^4.1.18",
+        "vue": "^3.5.25",
+        "vue-router": "^5.0.2"
+    },
+    "devDependencies": {
+        "@types/node": "^24.10.1",
+        "@vitejs/plugin-vue": "^6.0.2",
+        "@vue/tsconfig": "^0.8.1",
+        "typescript": "~5.9.3",
+        "vite": "^7.3.1",
+        "vue-tsc": "^3.1.5"
+    }
+}
