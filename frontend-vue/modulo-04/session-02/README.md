@@ -1,9 +1,5 @@
 # Clase 02 - Módulo 04: Configuración de Entorno de Desarrollo y Optimización con Vite
 
-## Duración estimada
-
-**90 minutos (1 hora y 30 minutos)**
-
 ## Objetivo de la clase
 
 Configurar de forma avanzada un entorno de desarrollo con Vite, comprender el uso correcto de variables de entorno y la integración de módulos externos, y aplicar configuraciones para optimizar el rendimiento del proyecto.
@@ -21,11 +17,11 @@ Configurar de forma avanzada un entorno de desarrollo con Vite, comprender el us
 
 ### ¿Qué es Vite?
 
-Vite es un *build tool* moderno que ofrece:
+Vite es un _build tool_ moderno que ofrece:
 
-* Inicio instantáneo del servidor de desarrollo
-* Recarga en caliente (HMR)
-* Bundling optimizado para producción usando esbuild/rollup
+- Inicio instantáneo del servidor de desarrollo
+- Recarga en caliente (HMR)
+- Bundling optimizado para producción usando esbuild/rollup
 
 ### Instalación básica de un proyecto con Vite
 
@@ -72,7 +68,7 @@ VITE_API_URL=https://api.midominio.com
 En tu código:
 
 ```ts
-const apiUrl = import.meta.env.VITE_API_URL
+const apiUrl = import.meta.env.VITE_API_URL;
 ```
 
 > ⚠️ Todas las variables deben comenzar con `VITE_` para ser accesibles desde el frontend.
@@ -105,7 +101,7 @@ npm install bootstrap
 
 ```ts
 // En main.ts
-import 'bootstrap/dist/css/bootstrap.min.css'
+import "bootstrap/dist/css/bootstrap.min.css";
 ```
 
 ---
@@ -117,24 +113,24 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 #### Alias de rutas
 
 ```ts
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import path from 'path'
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
+import path from "path";
 
 export default defineConfig({
-  plugins: [vue()],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'src')
-    }
-  }
-})
+    plugins: [vue()],
+    resolve: {
+        alias: {
+            "@": path.resolve(__dirname, "src"),
+        },
+    },
+});
 ```
 
 Esto permite importar así:
 
 ```ts
-import MyComponent from '@/components/MyComponent.vue'
+import MyComponent from "@/components/MyComponent.vue";
 ```
 
 #### Optimización de dependencias
@@ -176,32 +172,32 @@ build: {
 
 ```ts
 // vite.config.ts
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import path from 'path'
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
+import path from "path";
 
 export default defineConfig({
-  plugins: [vue()],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
-    },
-  },
-  optimizeDeps: {
-    include: ['axios'],
-  },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            return 'vendor';
-          }
+    plugins: [vue()],
+    resolve: {
+        alias: {
+            "@": path.resolve(__dirname, "src"),
         },
-      },
     },
-  },
-})
+    optimizeDeps: {
+        include: ["axios"],
+    },
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (id.includes("node_modules")) {
+                        return "vendor";
+                    }
+                },
+            },
+        },
+    },
+});
 ```
 
 ---

@@ -1,10 +1,11 @@
 # Uso de Variables de Entorno y Git Flow en Proyectos con Vite
 
-## 🧩 ¿Qué son las variables de entorno?
+## ¿Qué son las variables de entorno?
 
 Las **variables de entorno** (`environment variables`) son valores externos al código fuente que afectan el comportamiento de la aplicación.
 
 ### Ejemplos comunes
+
 - URLs de APIs
 - Claves secretas
 - Colores, mensajes y configuración visual
@@ -14,15 +15,15 @@ Permiten separar la **configuración** del **código fuente**, siguiendo buenas 
 
 ---
 
-## 🗂️ ¿Cómo se usan en Vite?
+## ¿Cómo se usan en Vite?
 
 ### Archivos soportados por Vite:
 
-| Archivo            | Usado para...                      |
-|--------------------|------------------------------------|
-| `.env`             | Común a todos los entornos         |
-| `.env.development` | Modo desarrollo (`npm run dev`)    |
-| `.env.production`  | Modo producción (`npm run build`)  |
+| Archivo            | Usado para...                     |
+| ------------------ | --------------------------------- |
+| `.env`             | Común a todos los entornos        |
+| `.env.development` | Modo desarrollo (`npm run dev`)   |
+| `.env.production`  | Modo producción (`npm run build`) |
 
 ### Ejemplo de `.env.development`
 
@@ -34,16 +35,17 @@ VITE_PRIMARY_COLOR=#409EFF
 ### En tu código Vue:
 
 ```ts
-const api = import.meta.env.VITE_API_URL
+const api = import.meta.env.VITE_API_URL;
 ```
 
 > ⚠️ Todas las variables deben comenzar con `VITE_` para que sean accesibles desde el frontend.
 
 ---
 
-## 👨‍💻 ¿Cómo se trabaja con esto en equipo?
+## ¿Cómo se trabaja con esto en equipo?
 
 ### Buenas prácticas:
+
 1. No subir archivos `.env` reales al repositorio.
 2. Crear y mantener actualizado un archivo `.env.example`.
 3. Agregar `.env.*` al `.gitignore`:
@@ -54,13 +56,14 @@ const api = import.meta.env.VITE_API_URL
 ```
 
 ### Flujo típico para cada miembro del equipo:
+
 - Clona el repositorio
 - Copia `.env.example` a `.env.development`
 - Llena sus propios valores locales
 
 ---
 
-## 📦 `.env.example` típico
+## `.env.example` típico
 
 ```env
 VITE_API_URL=
@@ -70,7 +73,7 @@ VITE_GOOGLE_MAPS_API_KEY=
 
 ---
 
-## 🔄 Git Flow y relación con entornos
+## Git Flow y relación con entornos
 
 **Git Flow** es una estrategia de ramificación:
 
@@ -85,16 +88,16 @@ main
 
 ### Relación con entornos:
 
-| Rama         | Entorno            | Variables de entorno      |
-|--------------|---------------------|----------------------------|
-| `develop`    | Desarrollo (`dev`)  | `.env.development`         |
-| `release/*`  | QA / staging        | `.env.qa`, `.env.test`     |
-| `main`       | Producción          | `.env.production`          |
-| `hotfix/*`   | Producción          | `.env.production`          |
+| Rama        | Entorno            | Variables de entorno   |
+| ----------- | ------------------ | ---------------------- |
+| `develop`   | Desarrollo (`dev`) | `.env.development`     |
+| `release/*` | QA / staging       | `.env.qa`, `.env.test` |
+| `main`      | Producción         | `.env.production`      |
+| `hotfix/*`  | Producción         | `.env.production`      |
 
 ---
 
-## 🛠️ Scripts típicos en `package.json`
+## Scripts típicos en `package.json`
 
 ```json
 "scripts": {
@@ -107,7 +110,7 @@ main
 
 ---
 
-## ✅ Buenas prácticas generales
+## Buenas prácticas generales
 
 - Mantener un `.env.example` sincronizado con el código
 - No subir nunca claves sensibles
@@ -117,6 +120,6 @@ main
 
 ---
 
-## 🧪 Recomendación adicional
+## Recomendación adicional
 
 Agregar una sección en el `README.md` de tu repositorio para que el equipo sepa cómo configurar su entorno local correctamente.
