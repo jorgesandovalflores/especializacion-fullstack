@@ -5,7 +5,7 @@
 1. Configurar un proyecto Vue 3 para entorno productivo.
 2. Generar archivos optimizados con Vite.
 3. Construir un dashboard de pedidos con carrito de compras.
-4. Desplegar el proyecto en Vercel, Netlify y Firebase Hosting.
+4. Desplegar el proyecto en Vercel, Netlify y Firebase Hosting. (Firebase por defecto)
 5. Comparar entornos y plataformas cloud.
 
 ---
