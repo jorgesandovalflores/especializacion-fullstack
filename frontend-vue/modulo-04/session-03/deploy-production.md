@@ -1,19 +1,19 @@
-# 🚀 Deploy de una App Vue 3 + TypeScript en Firebase Hosting
+# Deploy de una App Vue 3 + TypeScript en Firebase Hosting
 
 Este documento detalla el paso a paso para compilar y desplegar una aplicación Vue 3 + Vite + TypeScript en Firebase Hosting.
 
 ---
 
-## 💠 Requisitos previos
+## Requisitos previos
 
-* Tener instalado Node.js (v16 o superior)
-* Tener cuenta en [Firebase](https://firebase.google.com)
-* Proyecto ya inicializado con Vue 3, Vite y TypeScript
-* Haber ejecutado `npm install`
+- Tener instalado Node.js (v16 o superior)
+- Tener cuenta en [Firebase](https://firebase.google.com)
+- Proyecto ya inicializado con Vue 3, Vite y TypeScript
+- Haber ejecutado `npm install`
 
 ---
 
-## ✅ Paso 1: Instalar Firebase CLI
+## Paso 1: Instalar Firebase CLI
 
 ```bash
 npm install -g firebase-tools
@@ -22,15 +22,16 @@ firebase --version
 
 ---
 
-## ✅ Paso 2: Iniciar sesión en Firebase
+## Paso 2: Iniciar sesión en Firebase
 
 ```bash
 firebase login
+firebase login --reauth // solo si falla la autenticacion
 ```
 
 ---
 
-## ✅ Paso 3: Inicializar Firebase en tu proyecto
+## Paso 3: Inicializar Firebase en tu proyecto
 
 Ejecuta desde la raíz del proyecto:
 
@@ -62,33 +63,33 @@ firebase init
 
 Esto creará dos archivos:
 
-* `firebase.json`
-* `.firebaserc`
+- `firebase.json`
+- `.firebaserc`
 
 ---
 
-## ✅ Paso 4: Ajustar configuración de producción
+## Paso 4: Ajustar configuración de producción
 
 ### `firebase.json` sugerido:
 
 ```json
 {
-  "hosting": {
-    "public": "dist",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
-  }
+    "hosting": {
+        "public": "dist",
+        "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+        "rewrites": [
+            {
+                "source": "**",
+                "destination": "/index.html"
+            }
+        ]
+    }
 }
 ```
 
 ---
 
-## ✅ Paso 5: Compilar la aplicación
+## Paso 5: Compilar la aplicación
 
 ```bash
 npm run build
@@ -98,7 +99,7 @@ Esto genera la carpeta `dist/` con la aplicación lista para producción.
 
 ---
 
-## ✅ Paso 6: Deploy a Firebase Hosting
+## Paso 6: Deploy a Firebase Hosting
 
 ```bash
 firebase deploy
@@ -114,7 +115,7 @@ Verás en la consola:
 
 ---
 
-## ✅ Paso 7: Ver en producción
+## Paso 7: Ver en producción
 
 Abre en el navegador la URL entregada por Firebase Hosting. ¡Tu app Vue está en línea!
 
@@ -134,16 +135,16 @@ example-frontend/
 
 ---
 
-## 🛀 Limpieza adicional (opcional)
+## Limpieza adicional (opcional)
 
 Para asegurar builds optimizados puedes:
 
-* Usar `vite-plugin-compression` para gzip
-* Eliminar `console.log` con `terserOptions`
-* Verificar dependencias innecesarias
+- Usar `vite-plugin-compression` para gzip
+- Eliminar `console.log` con `terserOptions`
+- Verificar dependencias innecesarias
 
 ---
 
-## 🎯 ¡Despliegue exitoso!
+## ¡Despliegue exitoso!
 
 Ahora puedes hacer cambios, volver a compilar (`npm run build`) y ejecutar `firebase deploy` nuevamente cuando quieras actualizar tu aplicación.

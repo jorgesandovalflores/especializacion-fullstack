@@ -1,34 +1,35 @@
-## 🧠 ¿Cómo Vue.js genera builds livianos para producción?
+## ¿Cómo Vue.js genera builds livianos para producción?
 
 ### ¿Qué es una SPA compilada?
 
 Una SPA (Single Page Application):
+
 - Se sirve desde un único archivo HTML.
 - Usa JavaScript modular para renderizar vistas dinámicamente.
 - No recarga el navegador al navegar entre vistas.
 
 ---
 
-### ⚙️ ¿Qué hace Vue.js con Vite al ejecutar `npm run build`?
+### ¿Qué hace Vue.js con Vite al ejecutar `npm run build`?
 
 1. **Transpilación**
-   - Convierte TypeScript y componentes `.vue` en JavaScript.
+    - Convierte TypeScript y componentes `.vue` en JavaScript.
 
 2. **Bundle**
-   - Agrupa archivos en módulos optimizados.
-   - Divide el código en chunks (`main`, `vendors`, etc.).
+    - Agrupa archivos en módulos optimizados.
+    - Divide el código en chunks (`main`, `vendors`, etc.).
 
 3. **Minificación**
-   - Elimina espacios, comentarios, y renombra variables.
-   - Quita código no utilizado (tree-shaking).
+    - Elimina espacios, comentarios, y renombra variables.
+    - Quita código no utilizado (tree-shaking).
 
 4. **Lazy Loading (Code Splitting)**
-   - Carga código bajo demanda por ruta.
-   - Mejora el tiempo de carga inicial.
+    - Carga código bajo demanda por ruta.
+    - Mejora el tiempo de carga inicial.
 
 ---
 
-### 📁 Resultado del build (`dist/`)
+### Resultado del build (`dist/`)
 
 ```
 dist/
@@ -43,14 +44,14 @@ Este contenido puede desplegarse en Firebase Hosting, Vercel o Netlify fácilmen
 
 ---
 
-### 🆚 Comparativa con otros frameworks
+### Comparativa con otros frameworks
 
-| Framework        | Build Tool         | Code Splitting | SSR / Pre-rendering |
-|------------------|--------------------|----------------|---------------------|
-| **Vue (Vite)**   | Vite + esbuild     | ✅ Sí          | ✅ Con Nuxt          |
-| **React (CRA)**  | Webpack / Vite     | ✅ Sí          | ✅ Con Next.js       |
-| **Angular**      | Angular CLI        | ✅ Sí          | ✅ Angular Universal |
-| **SvelteKit**    | Vite + Svelte      | ✅ Automático  | ✅ SSR / Edge Ready  |
+| Framework       | Build Tool     | Code Splitting | SSR / Pre-rendering  |
+| --------------- | -------------- | -------------- | -------------------- |
+| **Vue (Vite)**  | Vite + esbuild | ✅ Sí          | ✅ Con Nuxt          |
+| **React (CRA)** | Webpack / Vite | ✅ Sí          | ✅ Con Next.js       |
+| **Angular**     | Angular CLI    | ✅ Sí          | ✅ Angular Universal |
+| **SvelteKit**   | Vite + Svelte  | ✅ Automático  | ✅ SSR / Edge Ready  |
 
 ---
 

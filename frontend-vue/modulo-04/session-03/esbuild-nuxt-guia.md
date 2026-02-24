@@ -1,6 +1,6 @@
-# 🧰 Guía Completa: esbuild y Nuxt.js
+# Guía Completa: esbuild y Nuxt.js
 
-## ⚡ esbuild – El bundler ultrarrápido
+## esbuild – El bundler ultrarrápido
 
 ### ¿Qué es esbuild?
 
@@ -14,16 +14,16 @@
 
 ### Características principales
 
-| Característica         | ¿esbuild lo soporta? | Notas                                          |
-|------------------------|----------------------|------------------------------------------------|
-| Transpilación TS       | ✅                   | Soporte nativo                                 |
-| Bundling               | ✅                   | Agrupa todos los módulos en uno solo           |
-| Minificación           | ✅                   | Muy rápida al eliminar espacios y comentarios  |
-| Tree-shaking           | ✅                   | Elimina código no utilizado                    |
-| Code splitting         | ✅                   | Compatible con `import()` dinámico             |
-| Plugins                | ✅ (limitado)        | Soporte básico                                 |
-| CSS bundling           | ✅                   | También agrupa e importa CSS                   |
-| Watch mode             | ✅                   | Para desarrollo                                |
+| Característica   | ¿esbuild lo soporta? | Notas                                         |
+| ---------------- | -------------------- | --------------------------------------------- |
+| Transpilación TS | ✅                   | Soporte nativo                                |
+| Bundling         | ✅                   | Agrupa todos los módulos en uno solo          |
+| Minificación     | ✅                   | Muy rápida al eliminar espacios y comentarios |
+| Tree-shaking     | ✅                   | Elimina código no utilizado                   |
+| Code splitting   | ✅                   | Compatible con `import()` dinámico            |
+| Plugins          | ✅ (limitado)        | Soporte básico                                |
+| CSS bundling     | ✅                   | También agrupa e importa CSS                  |
+| Watch mode       | ✅                   | Para desarrollo                               |
 
 ---
 
@@ -52,7 +52,7 @@ esbuild app.ts --bundle --minify --outfile=dist/bundle.js
 
 ---
 
-## 🌐 Nuxt.js – Framework progresivo para Vue
+## Nuxt.js – Framework progresivo para Vue
 
 ### ¿Qué es Nuxt?
 
@@ -77,12 +77,12 @@ esbuild app.ts --bundle --minify --outfile=dist/bundle.js
 
 ### Modos de renderizado
 
-| Modo           | ¿Qué hace?                                                                 |
-|----------------|-----------------------------------------------------------------------------|
-| SPA            | Comportamiento tradicional de Vue                                          |
-| SSR            | Renderiza HTML en el servidor para SEO                                     |
-| SSG            | Genera HTML estático en build-time                                         |
-| Hybrid         | Puedes usar SSR para algunas páginas y SSG para otras                      |
+| Modo   | ¿Qué hace?                                            |
+| ------ | ----------------------------------------------------- |
+| SPA    | Comportamiento tradicional de Vue                     |
+| SSR    | Renderiza HTML en el servidor para SEO                |
+| SSG    | Genera HTML estático en build-time                    |
+| Hybrid | Puedes usar SSR para algunas páginas y SSG para otras |
 
 ---
 
@@ -110,9 +110,10 @@ nuxt-app/
 ### ¿Cuándo usar Nuxt?
 
 ✅ Cuando necesitas:
-- SEO en una SPA  
-- Mejores tiempos de carga inicial  
-- Rutas automáticas y menos configuración  
+
+- SEO en una SPA
+- Mejores tiempos de carga inicial
+- Rutas automáticas y menos configuración
 
 ---
 
@@ -124,13 +125,12 @@ nuxt-app/
 
 ---
 
-## 🧠 Comparación rápida
+## Comparación rápida
 
-| Característica     | esbuild                        | Nuxt.js                            |
-|--------------------|--------------------------------|------------------------------------|
-| ¿Qué es?           | Bundler/transpiler             | Framework full-stack para Vue      |
-| Enfocado en        | Velocidad de compilación       | Renderizado y estructura de apps   |
-| Usado en           | Vite, Snowpack, CLI            | Vue apps con SSR, SSG              |
-| Complemento de     | Vite, herramientas de build     | Vue.js                             |
-| Nivel              | Bajo (build)                   | Alto (estructura + SSR + config)   |
-
+| Característica | esbuild                     | Nuxt.js                          |
+| -------------- | --------------------------- | -------------------------------- |
+| ¿Qué es?       | Bundler/transpiler          | Framework full-stack para Vue    |
+| Enfocado en    | Velocidad de compilación    | Renderizado y estructura de apps |
+| Usado en       | Vite, Snowpack, CLI         | Vue apps con SSR, SSG            |
+| Complemento de | Vite, herramientas de build | Vue.js                           |
+| Nivel          | Bajo (build)                | Alto (estructura + SSR + config) |

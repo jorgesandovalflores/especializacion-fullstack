@@ -172,3 +172,5 @@ public/robots.txt
 **/**/.terraform.lock.hcl
 **/**/**.tfstate
 **/**/*.env
+
+**/.firebase

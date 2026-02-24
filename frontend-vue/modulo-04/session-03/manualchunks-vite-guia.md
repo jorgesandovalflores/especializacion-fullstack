@@ -1,6 +1,6 @@
-# 📦 Optimización con `manualChunks` en Vite
+# Optimización con `manualChunks` en Vite
 
-## 🧩 ¿Qué es `manualChunks`?
+## ¿Qué es `manualChunks`?
 
 `manualChunks` es una opción avanzada en Rollup (y usada por Vite) para dividir manualmente el código en archivos ("chunks") durante el proceso de build.
 
@@ -8,7 +8,7 @@
 
 ---
 
-## 🎯 ¿Por qué usar manualChunks?
+## ¿Por qué usar manualChunks?
 
 - **Reduce el tamaño de carga inicial.**
 - **Permite cachear paquetes comunes como Vue, Pinia, etc.**
@@ -16,39 +16,39 @@
 
 ---
 
-## ⚙️ Uso básico en Vite
+## Uso básico en Vite
 
 Archivo `vite.config.ts`:
 
 ```ts
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
 
 export default defineConfig({
-  plugins: [vue()],
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('vue')) {
-              return 'vendor-vue'
-            }
-            if (id.includes('pinia')) {
-              return 'vendor-pinia'
-            }
-            return 'vendor'
-          }
-        }
-      }
-    }
-  }
-})
+    plugins: [vue()],
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (id.includes("node_modules")) {
+                        if (id.includes("vue")) {
+                            return "vendor-vue";
+                        }
+                        if (id.includes("pinia")) {
+                            return "vendor-pinia";
+                        }
+                        return "vendor";
+                    }
+                },
+            },
+        },
+    },
+});
 ```
 
 ---
 
-## 📁 Resultado del build
+## Resultado del build
 
 ```
 dist/assets/
@@ -60,16 +60,17 @@ dist/assets/
 
 ---
 
-## 📈 ¿Cuándo usarlo?
+## ¿Cuándo usarlo?
 
 ✅ Úsalo si:
+
 - Tienes librerías pesadas (ej. `axios`, `firebase`, `vue`).
 - Quieres separar vistas o funcionalidades (ej. auth, admin).
 - Quieres mejorar el rendimiento de carga y caching.
 
 ---
 
-## 🧠 Buenas prácticas
+## Buenas prácticas
 
 - No crear demasiados chunks pequeños (aumenta las peticiones HTTP).
 - Agrupar dependencias comunes en un solo vendor (cuando sea posible).
@@ -77,7 +78,7 @@ dist/assets/
 
 ---
 
-## 📚 Ejemplo avanzado
+## Ejemplo avanzado
 
 ```ts
 manualChunks: {
@@ -89,7 +90,7 @@ manualChunks: {
 
 ---
 
-## 🔍 Analiza el resultado visualmente
+## Analiza el resultado visualmente
 
 Instala:
 
@@ -100,20 +101,17 @@ npm install -D rollup-plugin-visualizer
 Configura en `vite.config.ts`:
 
 ```ts
-import { visualizer } from 'rollup-plugin-visualizer'
+import { visualizer } from "rollup-plugin-visualizer";
 
 export default defineConfig({
-  plugins: [
-    vue(),
-    visualizer({ open: true })
-  ]
-})
+    plugins: [vue(), visualizer({ open: true })],
+});
 ```
 
 Esto abrirá un reporte visual del tamaño de cada chunk en el navegador.
 
 ---
 
-## ✅ Conclusión
+## Conclusión
 
 `manualChunks` te permite controlar cómo se divide tu código en producción. Bien usado, puede mejorar la performance, caching y escalabilidad de tu aplicación Vue/Vite.
