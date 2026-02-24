@@ -173,4 +173,4 @@ public/robots.txt
 **/**/**.tfstate
 **/**/*.env
 
-**/.firebase
+**/**.firebase
