@@ -1,18 +1,17 @@
-
-# 🎥 Integración de LogRocket en Vue 3 + TypeScript
+# Integración de LogRocket en Vue 3 + TypeScript
 
 Esta guía paso a paso te permitirá integrar LogRocket en una aplicación Vue.js con Vite y TypeScript para monitorear sesiones, errores y performance.
 
 ---
 
-## ✅ Requisitos previos
+## Requisitos previos
 
 - Proyecto creado con Vue 3 + Vite + TypeScript.
 - Cuenta gratuita en [https://logrocket.com](https://logrocket.com).
 
 ---
 
-## 1. 📝 Crear cuenta y proyecto en LogRocket
+## 1. Crear cuenta y proyecto en LogRocket
 
 1. Ve a [https://logrocket.com](https://logrocket.com) y regístrate.
 2. Crea un nuevo proyecto.
@@ -20,7 +19,7 @@ Esta guía paso a paso te permitirá integrar LogRocket en una aplicación Vue.j
 
 ---
 
-## 2. 📦 Instalar la dependencia de LogRocket
+## 2. Instalar la dependencia de LogRocket
 
 ```bash
 npm install logrocket
@@ -28,41 +27,41 @@ npm install logrocket
 
 ---
 
-## 3. ⚙️ Crear archivo de configuración `logrocket.ts`
+## 3. Crear archivo de configuración `logrocket.ts`
 
 Crea el archivo en `src/logrocket.ts`:
 
 ```ts
-import LogRocket from 'logrocket'
+import LogRocket from "logrocket";
 
 export function initLogRocket() {
-  if (import.meta.env.MODE === 'production') {
-    LogRocket.init(import.meta.env.VITE_LOGROCKET_ID)
-  }
+    if (import.meta.env.MODE === "production") {
+        LogRocket.init(import.meta.env.VITE_LOGROCKET_ID);
+    }
 }
 ```
 
 ---
 
-## 4. 🧩 Usar LogRocket en `main.ts`
+## 4. Usar LogRocket en `main.ts`
 
 ```ts
-import { createApp } from 'vue'
-import App from './App.vue'
-import router from './router'
-import { initLogRocket } from './logrocket'
+import { createApp } from "vue";
+import App from "./App.vue";
+import router from "./router";
+import { initLogRocket } from "./logrocket";
 
-const app = createApp(App)
-app.use(router)
+const app = createApp(App);
+app.use(router);
 
-initLogRocket()
+initLogRocket();
 
-app.mount('#app')
+app.mount("#app");
 ```
 
 ---
 
-## 5. 🔐 Configurar `.env.production`
+## 5. Configurar `.env.production`
 
 Agrega tu ID de LogRocket:
 
@@ -72,7 +71,7 @@ VITE_LOGROCKET_ID=tuusuario/tuapp
 
 ---
 
-## 6. 🚀 ¿Qué captura LogRocket automáticamente?
+## 6. ¿Qué captura LogRocket automáticamente?
 
 - Errores no capturados (uncaught exceptions).
 - Logs de consola (`console.error`, `warn`, etc).
@@ -82,12 +81,12 @@ VITE_LOGROCKET_ID=tuusuario/tuapp
 
 ---
 
-## 7. 🧪 Probar integración
+## 7. Probar integración
 
 1. Genera un error intencional en un componente:
 
 ```ts
-throw new Error('Error de prueba LogRocket')
+throw new Error("Error de prueba LogRocket");
 ```
 
 2. Haz build y despliega tu app.
@@ -96,7 +95,7 @@ throw new Error('Error de prueba LogRocket')
 
 ---
 
-## 8. ✅ Resultado esperado
+## 8. Resultado esperado
 
 - Puedes revisar sesiones completas desde el panel de LogRocket.
 - Tienes errores con contexto, trazas y reproducción visual.
@@ -104,9 +103,8 @@ throw new Error('Error de prueba LogRocket')
 
 ---
 
-## 📌 Consideraciones
+## Consideraciones
 
 - **No uses en desarrollo local**, usa `if (import.meta.env.MODE === 'production')`.
 - Puedes integrar LogRocket con herramientas como Sentry o Segment.
 - Compatible con Vue Router y Vuex/Pinia (puede requerir configuración adicional).
-
