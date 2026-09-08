@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import BaseInput from '../components/BaseInput.vue'
 import BaseButton from '../components/BaseButton.vue'
+import { login } from '../services/auth.service'
+
+const router = useRouter()
 
 const form = reactive({
   email: '',
@@ -9,8 +13,22 @@ const form = reactive({
   rememberMe: false,
 })
 
-function handleSubmit() {
-  console.log('login', { ...form })
+const isSubmitting = ref(false)
+const errorMessage = ref('')
+
+async function handleSubmit() {
+  errorMessage.value = ''
+  isSubmitting.value = true
+
+  try {
+    await login({ email: form.email, password: form.password })
+    await router.push('/home')
+  } catch (error) {
+    errorMessage.value =
+      error instanceof Error ? error.message : 'No se pudo iniciar sesión'
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 
@@ -43,7 +61,11 @@ function handleSubmit() {
         <a class="login-mobile__link" href="#">¿Olvidaste tu contraseña?</a>
       </div>
 
-      <BaseButton type="submit">Iniciar sesión</BaseButton>
+      <p v-if="errorMessage" class="login-mobile__error">{{ errorMessage }}</p>
+
+      <BaseButton type="submit" :disabled="isSubmitting">
+        {{ isSubmitting ? 'Ingresando...' : 'Iniciar sesión' }}
+      </BaseButton>
 
       <p class="login-mobile__footer">
         ¿No tienes cuenta?
@@ -108,6 +130,13 @@ function handleSubmit() {
 
 .login-mobile__link:hover {
   text-decoration: underline;
+}
+
+.login-mobile__error {
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-error);
 }
 
 .login-mobile__footer {

@@ -3,16 +3,23 @@ withDefaults(
   defineProps<{
     variant?: 'primary' | 'ghost'
     type?: 'button' | 'submit'
+    disabled?: boolean
   }>(),
   {
     variant: 'primary',
     type: 'button',
+    disabled: false,
   },
 )
 </script>
 
 <template>
-  <button :type="type" class="base-button" :class="`base-button--${variant}`">
+  <button
+    :type="type"
+    :disabled="disabled"
+    class="base-button"
+    :class="`base-button--${variant}`"
+  >
     <slot />
   </button>
 </template>
@@ -27,6 +34,11 @@ withDefaults(
   font-weight: 700;
   cursor: pointer;
   transition: background-color 0.15s ease;
+}
+
+.base-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .base-button--primary {

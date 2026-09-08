@@ -1,12 +1,20 @@
 # login-app
 
-Vista de login (Vue 3 + TypeScript + Vite), con layouts independientes para desktop y mobile, basada en el diseño de `masterclass/design.pen`.
+Vista de login (Vue 3 + TypeScript + Vite), con layouts independientes para desktop y mobile, basada en el diseño de `masterclass/design.pen`. Al iniciar sesión correctamente redirige a `/home`.
 
 ## Desarrollo local
+
+Requiere que `masterclass/login-backend` esté corriendo (por defecto en `http://localhost:3000`; ver sus credenciales de prueba en su propio README).
 
 ```bash
 pnpm install
 pnpm dev
+```
+
+Para apuntar a un backend en otra URL, define `VITE_API_BASE_URL` (por ejemplo en un `.env.local`):
+
+```
+VITE_API_BASE_URL=http://localhost:3000
 ```
 
 ## Build de producción
