@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import BaseInput from '../components/BaseInput.vue'
 import BaseButton from '../components/BaseButton.vue'
 import { login } from '../services/auth.service'
+import { saveToken } from '../services/session.service'
 
 const router = useRouter()
 
@@ -21,7 +22,8 @@ async function handleSubmit() {
   isSubmitting.value = true
 
   try {
-    await login({ email: form.email, password: form.password })
+    const response = await login({ email: form.email, password: form.password })
+    saveToken(response.accessToken)
     await router.push('/home')
   } catch (error) {
     errorMessage.value =
