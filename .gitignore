@@ -172,5 +172,11 @@ public/robots.txt
 **/**/.terraform.lock.hcl
 **/**/**.tfstate
 **/**/*.env
+**/**.env
+.env
+*.env
 
 **/**.firebase
+
+# Claude Code local settings
+.claude/
